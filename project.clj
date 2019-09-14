@@ -20,4 +20,6 @@
   :monolith
   {:project-dirs ["sparkler-core"
                   "sparkler-sql"
-                  "sparkler-ml"]})
+                  "sparkler-ml"]
+   :inherit [:deploy-branches
+             :pedantic?]})

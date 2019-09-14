@@ -1,0 +1,57 @@
+version: 2.1
+
+# Common executor configuration
+executors:
+  clojure:
+    docker:
+      - image: circleci/clojure:lein-2.9.1
+    working_directory: ~/repo
+
+
+# Job definitions
+jobs:
+  style:
+    executor: clojure
+    steps:
+      - checkout
+      - run:
+          name: Install cljfmt CLI
+          environment:
+            CLJFMT_VERSION: 0.8.2
+          command: |
+            wget https://github.com/greglook/cljfmt/releases/download/${CLJFMT_VERSION}/cljfmt_${CLJFMT_VERSION}_linux.tar.gz
+            tar -xzf cljfmt_${CLJFMT_VERSION}_linux.tar.gz
+      - run:
+          name: Check source formatting
+          command: "./cljfmt check --stats style-stats.tsv"
+      - store_artifacts:
+          path: style-stats.tsv
+          destination: style
+
+  test:
+    executor: clojure
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - v1-test-{{ checksum "project.clj" }}
+            - v1-test-
+      - run:
+          name: Pull dependencies
+          command: lein deps
+      - run:
+          name: Test projects
+          command: lein monolith each do clean, check, install
+      - save_cache:
+          key: v1-test-{{ checksum "project.clj" }}
+          paths:
+            - ~/.m2
+
+
+# Workflow definitions
+workflows:
+  version: 2
+  build:
+    jobs:
+      - style
+      - test

@@ -51,6 +51,7 @@ public abstract class SerializableFn implements Serializable {
     /**
      * Default empty constructor.
      *
+     * TODO is this accurate?
      * Inheriting classes must also have an empty constructor to be properly
      * serializable.
      */

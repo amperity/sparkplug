@@ -27,14 +27,14 @@
        (new ~(symbol  (str "sparkler.function." clazz)) ~'f))))
 
 
-(gen-function Function fn1)
-(gen-function Function2 fn2)
-(gen-function Function3 fn3)
-(gen-function VoidFunction void-fn)
-(gen-function FlatMapFunction flat-map-fn)
-(gen-function FlatMapFunction2 flat-map-fn2)
-(gen-function PairFlatMapFunction pair-flat-map-fn)
-(gen-function PairFunction pair-fn)
+(gen-function Fn1 fn1)
+(gen-function Fn2 fn2)
+(gen-function Fn3 fn3)
+(gen-function VoidFn void-fn)
+(gen-function FlatMapFn1 flat-map-fn)
+(gen-function FlatMapFn2 flat-map-fn2)
+(gen-function PairFlatMapFn pair-flat-map-fn)
+(gen-function PairFn pair-fn)
 
 
 

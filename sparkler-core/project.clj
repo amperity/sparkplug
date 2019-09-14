@@ -22,6 +22,9 @@
    [org.scala-lang/scala-reflect "2.12.8"]
    [org.slf4j/slf4j-api "1.7.25"]]
 
+  :source-paths ["src/clojure"]
+  :java-source-paths ["src/java"]
+
   :profiles
   {:default
    [:base :system :user :provided :spark-2.4 :dev]

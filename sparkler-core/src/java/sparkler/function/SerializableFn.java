@@ -38,11 +38,7 @@ import org.slf4j.LoggerFactory;
 public abstract class SerializableFn implements Serializable {
 
     private static final Logger logger = LoggerFactory.getLogger(SerializableFn.class);
-
     private static final Var require = RT.var("clojure.core", "require");
-    private static final Var symbol = RT.var("clojure.core", "symbol");
-    private static final Var vals = RT.var("clojure.core", "vals");
-    private static final Var seq = RT.var("clojure.core", "seq");
 
     protected IFn f;
     protected List<String> namespaces;
@@ -155,13 +151,13 @@ public abstract class SerializableFn implements Serializable {
     /**
      * Load the namespace specified by the given symbol.
      *
-     * @param namespace symbol designating the namespace to load
+     * @param namespace string designating the namespace to load
      */
     private static void requireNamespace(String namespace) {
         try {
             logger.trace("(require " + namespace + ")");
             synchronized (RT.REQUIRE_LOCK) {
-                Symbol sym = (Symbol)symbol.invoke(namespace);
+                Symbol sym = Symbol.intern(namespace);
                 require.invoke(sym);
             }
         } catch (Exception ex) {
@@ -174,12 +170,13 @@ public abstract class SerializableFn implements Serializable {
      * Walk the given object to find namespaces referenced by the value.
      *
      * @param obj a Clojure value to walk
-     * @return a set of namespace symbols
+     * @return a set of namespace strings
      */
-    private static Set<String> findVarNamespaces(Object obj) {
+    public static Set<String> findVarNamespaces(Object obj) {
         Set<String> references = new HashSet<String>();
         Set<Object> visited = new HashSet<Object>();
         findVarNamespaces(references, visited, obj);
+        references.remove("clojure.core");
         return references;
     }
 
@@ -188,7 +185,7 @@ public abstract class SerializableFn implements Serializable {
      * Walk the given object to find namespaces referenced by the value.
      * Namespace references are added to the given set.
      *
-     * @param references set to add discovered namespace symbols to
+     * @param references set to add discovered namespaces to
      * @param visited set of values which have already been walked
      * @param obj object to walk
      */
@@ -221,15 +218,9 @@ public abstract class SerializableFn implements Serializable {
         // Special case maps and records to traverse over their contents in
         // addition to their fields.
         if (obj instanceof IPersistentMap) {
-            // `vals` returns null for empty maps.
-            Iterable values = (Iterable)vals.invoke(obj);
-            if (values != null) {
-                for (Object val : values) {
-                    // TODO why only these two types?
-                    if (val instanceof IFn || val instanceof IPersistentMap) {
-                        findVarNamespaces(references, visited, val);
-                    }
-                }
+            IPersistentMap map = (IPersistentMap)obj;
+            for (Object entry : map) {
+                findVarNamespaces(references, visited, entry);
             }
         }
 

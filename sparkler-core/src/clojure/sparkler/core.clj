@@ -11,7 +11,8 @@
     [clojure.core :as c]
     [clojure.tools.logging :as log]
     [sparkler.function :as f]
-    [sparkler.name :as name])
+    [sparkler.name :as name]
+    [sparkler.rdd :as rdd])
   (:import
     (org.apache.spark.api.java
       JavaPairRDD
@@ -20,28 +21,9 @@
       StorageLevels)))
 
 
-;; ## Constants
-
-(def storage-levels
-  "Keyword mappings for available RDD storage levels."
-  {:memory-only           StorageLevels/MEMORY_ONLY
-   :memory-only-ser       StorageLevels/MEMORY_ONLY_SER
-   :memory-and-disk       StorageLevels/MEMORY_AND_DISK
-   :memory-and-disk-ser   StorageLevels/MEMORY_AND_DISK_SER
-   :disk-only             StorageLevels/DISK_ONLY
-   :memory-only-2         StorageLevels/MEMORY_ONLY_2
-   :memory-only-ser-2     StorageLevels/MEMORY_ONLY_SER_2
-   :memory-and-disk-2     StorageLevels/MEMORY_AND_DISK_2
-   :memory-and-disk-ser-2 StorageLevels/MEMORY_AND_DISK_SER_2
-   :disk-only-2           StorageLevels/DISK_ONLY_2
-   :none                  StorageLevels/NONE})
-
-
-
 ;; ## Spark Context
 
 ;; TODO: dynamic context var for convenience?
-
 
 (defn default-min-partitions
   "Default min number of partitions for Hadoop RDDs when not given by user"
@@ -56,60 +38,13 @@
 
 
 
-;; ## RDD Construction
-
-;; TODO: move to `sparkler.rdd`?
-
-(defn parallelize
-  "Distribute a local collection to form an RDD. Optionally accepts a number
-  of partitions to slice the collection into."
-  ([^JavaSparkContext spark-context coll]
-   (name/set-callsite-name
-     (.parallelize spark-context coll)))
-  ([^JavaSparkContext spark-context min-partitions coll]
-   (name/set-callsite-name
-     (.parallelize spark-context coll min-partitions)
-     min-partitions)))
-
-
-(defn parallelize-pairs
-  "Distributes a local collection to form a pair RDD. Optionally accepts a
-  number of partitions to slice the collection into."
-  ([^JavaSparkContext spark-context coll]
-   (name/set-callsite-name
-     (.parallelizePairs spark-context coll)))
-  ([^JavaSparkContext spark-context min-partitions coll]
-   (name/set-callsite-name
-     (.parallelizePairs spark-context coll min-partitions)
-     min-partitions)))
-
-
-(defn text-file
-  "Read a text file from a URL into an RDD of the lines in the file. Optionally
-  accepts a number of partitions to slice the file into."
-  ([^JavaSparkContext spark-context filename]
-   (.textFile spark-context filename))
-  ([^JavaSparkContext spark-context min-partitions filename]
-   (.textFile spark-context filename min-partitions)))
-
-
-(defn whole-text-files
-  "Read a directory of text files from a URL into an RDD. Each element of the
-  RDD is a pair of the file path and the full contents of the file."
-  ([^JavaSparkContext spark-context filename]
-   (.wholeTextFiles spark-context filename))
-  ([^JavaSparkContext spark-context min-partitions filename]
-   (.wholeTextFiles spark-context filename min-partitions)))
-
-
-
 ;; ## RDD Transformations
 
 (defn filter
   "Filter the elements of `rdd` to the ones which satisfy the predicate `f`."
   ^JavaRDD
   [f ^JavaRDD rdd]
-  (name/set-callsite-name
+  (rdd/set-callsite-name
     (.filter rdd (f/fn1 (comp boolean f)))
     (name/fn-name f)))
 
@@ -119,7 +54,7 @@
   representing the transformed elements."
   ^JavaRDD
   [f ^JavaRDD rdd]
-  (name/set-callsite-name
+  (rdd/set-callsite-name
     (.map rdd (f/fn1 f))
     (name/fn-name f)))
 
@@ -130,7 +65,7 @@
   results."
   ^JavaRDD
   [f ^JavaRDD rdd]
-  (name/set-callsite-name
+  (rdd/set-callsite-name
     (.flatMap rdd (f/flat-map-fn f))
     (name/fn-name f)))
 
@@ -145,7 +80,7 @@
    (map-partitions f false rdd))
   ^JavaRDD
   ([f preserve-partitioni ^JavaRDD rdd]
-   (name/set-callsite-name
+   (rdd/set-callsite-name
      (.mapPartitions rdd (f/flat-map-fn f))
      (name/fn-name f))))
 
@@ -157,9 +92,33 @@
   of the elements of each partition."
   ^JavaRDD
   [f ^JavaRDD rdd]
-  (name/set-callsite-name
+  (rdd/set-callsite-name
     (.mapPartitionsWithIndex rdd (f/fn2 f) true)
     (name/fn-name f)))
+
+
+(defn sample
+  "Generate a randomly sampled subset of `rdd` with roughly `fraction` of the
+  original elements. Callers can optionally select whether the sample happens
+  with replacement, and a random seed to control the sample."
+  ^JavaRDD
+  ([fraction ^JavaRDD rdd]
+   (rdd/set-callsite-name
+     (.sample rdd true (double fraction))
+     (double fraction)))
+  ^JavaRDD
+  ([fraction replacement? ^JavaRDD rdd]
+   (rdd/set-callsite-name
+     (.sample rdd (boolean replacement?) (double fraction))
+     (double fraction)
+     (boolean replacement?)))
+  ^JavaRDD
+  ([fraction replacement? seed ^JavaRDD rdd]
+   (rdd/set-callsite-name
+     (.sample rdd (boolean replacement?) (double fraction) (long seed))
+     (double fraction)
+     (boolean replacement?)
+     (long seed))))
 
 
 
@@ -170,7 +129,7 @@
   representing the keys."
   ^JavaRDD
   [^JavaPairRDD rdd]
-  (name/set-callsite-name (.keys rdd)))
+  (rdd/set-callsite-name (.keys rdd)))
 
 
 (defn values
@@ -178,14 +137,14 @@
   representing the values."
   ^JavaRDD
   [^JavaPairRDD rdd]
-  (name/set-callsite-name (.values rdd)))
+  (rdd/set-callsite-name (.values rdd)))
 
 
 (defn key-by
   "Creates pairs from the elements in `rdd` by using `f` to compute a key for
   each value."
   [f ^JavaRDD rdd]
-  (name/set-callsite-name
+  (rdd/set-callsite-name
     (.mapToPair rdd (f/pair-fn (juxt f identity)))
     (name/fn-name f)))
 
@@ -195,7 +154,7 @@
   representing the transformed elements."
   ^JavaPairRDD
   [f ^JavaRDD rdd]
-  (name/set-callsite-name
+  (rdd/set-callsite-name
     (.mapToPair rdd (f/pair-fn f))
     (name/fn-name f)))
 
@@ -206,7 +165,7 @@
   result pairs."
   ^JavaPairRDD
   [f ^JavaRDD rdd]
-  (name/set-callsite-name
+  (rdd/set-callsite-name
     (.flatMapToPair rdd (f/pair-flat-map-fn f))
     (name/fn-name f)))
 
@@ -220,7 +179,7 @@
    (map-partitions->pairs f false rdd))
   ^JavaPairRDD
   ([f preserve-partitioning? ^JavaRDD rdd]
-   (name/set-callsite-name
+   (rdd/set-callsite-name
      (.mapPartitionsToPair
        rdd
        (f/pair-flat-map-fn f)
@@ -234,7 +193,7 @@
   pair RDD representing the transformed pairs."
   ^JavaPairRDD
   [f ^JavaPairRDD rdd]
-  (name/set-callsite-name
+  (rdd/set-callsite-name
     (.mapValues rdd (f/fn1 f))
     (name/fn-name f)))
 
@@ -245,13 +204,169 @@
   keys and values."
   ^JavaPairRDD
   [f ^JavaPairRDD rdd]
-  (name/set-callsite-name
+  (rdd/set-callsite-name
     (.flatMapValues rdd (f/fn1 f))
     (name/fn-name f)))
 
 
+(defn zip-indexed
+  "Zip the elements in `rdd` with their indices. Returns a new pair RDD with
+  the element/index tuples.
 
-;; ## RDD Aggregations
+  The ordering is first based on the partition index and then the ordering of
+  items within each partition. So the first item in the first partition gets
+  index 0, and the last item in the last partition receives the largest index.
+
+  This method needs to trigger a spark job when `rdd` contains more than one
+  partition."
+  ^JavaPairRDD
+  [^JavaRDD rdd]
+  (rdd/set-callsite-name (.zipWithIndex rdd)))
+
+
+(defn zip-unique-ids
+  "Zip the elements in `rdd` with unique long identifiers. Returns a new pair
+  RDD with the element/id tuples.
+
+  Items in the kth partition will get ids `k`, `n+k`, `2*n+k`, ..., where `n`
+  is the number of partitions. So the ids won't be sequential and there may be
+  gaps, but this method _won't_ trigger a spark job, unlike `zip-indexed`."
+  ^JavaPairRDD
+  [^JavaRDD rdd]
+  (rdd/set-callsite-name (.zipWithUniqueId rdd)))
+
+
+
+;; ## Pair RDD Aggregation
+
+(defn group-by
+  "Group the elements of `rdd` using a key function `f`. Returns a pair RDD
+  with each generated key and all matching elements as a value sequence."
+  ^JavaPairRDD
+  ([f ^JavaRDD rdd]
+   (rdd/set-callsite-name
+     (.groupBy rdd (f/fn1 f))
+     (name/fn-name f)))
+  ^JavaPairRDD
+  ([f num-partitions ^JavaRDD rdd]
+   (rdd/set-callsite-name
+     (.groupBy rdd (f/fn1 f) (int num-partitions))
+     (name/fn-name f)
+     num-partitions)))
+
+
+(defn group-by-key
+  "Group the entries in the pair `rdd` by key. Returns a new pair RDD with one
+  entry per key, containing all of the matching values as a sequence."
+  ^JavaPairRDD
+  ([^JavaPairRDD rdd]
+   (rdd/set-callsite-name
+     (.groupByKey rdd)))
+  ^JavaPairRDD
+  ([num-partitions ^JavaPairRDD rdd]
+   (rdd/set-callsite-name
+     (.groupByKey rdd (int num-partitions))
+     num-partitions)))
+
+
+(defn reduce-by-key
+  "Aggregate the pairs of `rdd` which share a key by combining all of the
+  values with the reducing function `f`. Returns a new pair RDD with one entry
+  per unique key, holding the aggregated values."
+  ^JavaPairRDD
+  [f ^JavaPairRDD rdd]
+  (rdd/set-callsite-name
+    (.reduceByKey rdd (f/fn2 f))
+    (name/fn-name f)))
+
+
+(defn combine-by-key
+  "Combine the elements for each key using a set of aggregation functions.
+
+  If `rdd` contains pairs of `(K, V)`, the resulting RDD will contain pairs of
+  type `(K, C)`. Callers must provide three functions:
+  - `seq-fn` which turns a V into a C (for example, `vector`)
+  - `conj-fn` to add a V to a C (for example, `conj`)
+  - `merge-fn` to combine two C's into a single result"
+  ^JavaPairRDD
+  ([seq-fn conj-fn merge-fn ^JavaPairRDD rdd]
+   (rdd/set-callsite-name
+     (.combineByKey rdd
+                    (f/fn1 seq-fn)
+                    (f/fn2 conj-fn)
+                    (f/fn2 merge-fn))
+     (name/fn-name seq-fn)
+     (name/fn-name conj-fn)
+     (name/fn-name merge-fn)))
+  ^JavaPairRDD
+  ([seq-fn conj-fn merge-fn num-partitions ^JavaPairRDD rdd]
+   (rdd/set-callsite-name
+     (.combineByKey rdd
+                    (f/fn1 seq-fn)
+                    (f/fn2 conj-fn)
+                    (f/fn2 merge-fn)
+                    (int num-partitions))
+     (name/fn-name seq-fn)
+     (name/fn-name conj-fn)
+     (name/fn-name merge-fn)
+     num-partitions)))
+
+
+(defn sort-by-key
+  "Reorder the elements of `rdd` so that they are sorted according to their
+  natural order or the given comparator `f` if provided. The result may be
+  ordered ascending or descending, depending on `ascending?`."
+  ^JavaPairRDD
+  ([^JavaPairRDD rdd]
+   (rdd/set-callsite-name
+     (.sortByKey rdd true)))
+  ^JavaPairRDD
+  ([ascending? ^JavaPairRDD rdd]
+   (rdd/set-callsite-name
+     (.sortByKey rdd (boolean ascending?))
+     (boolean ascending?)))
+  ^JavaPairRDD
+  ([compare-fn ascending? ^JavaPairRDD rdd]
+   (rdd/set-callsite-name
+     (.sortByKey rdd
+                 (f/comparator-fn compare-fn)
+                 (boolean ascending?))
+     (name/fn-name compare-fn)
+     (boolean ascending?)))
+  ^JavaPairRDD
+  ([compare-fn ascending? num-partitions ^JavaPairRDD rdd]
+   (rdd/set-callsite-name
+     (.sortByKey rdd
+                 (f/comparator-fn compare-fn)
+                 (boolean ascending?)
+                 (int num-partitions))
+     (name/fn-name compare-fn)
+     (boolean ascending?)
+     (int num-partitions))))
+
+
+
+;; ## RDD Aggregation Actions
+
+(defn min
+  "Find the minimum element in `rdd` in the ordering defined by `compare-fn`.
+
+  This is an action that causes computation."
+  ([^JavaRDD rdd]
+   (min compare rdd))
+  ([compare-fn ^JavaRDD rdd]
+   (.min rdd (f/comparator-fn compare-fn))))
+
+
+(defn max
+  "Find the maximum element in `rdd` in the ordering defined by `compare-fn`.
+
+  This is an action that causes computation."
+  ([^JavaRDD rdd]
+   (max compare rdd))
+  ([compare-fn ^JavaRDD rdd]
+   (.max rdd (f/comparator-fn compare-fn))))
+
 
 (defn reduce
   "Aggregate the elements of `rdd` using the function `f`. The reducing
@@ -281,6 +396,22 @@
   This is an action that causes computation."
   [aggregator combiner zero ^JavaRDD rdd]
   (.aggregate rdd zero (f/fn2 aggregator) (f/fn2 combiner)))
+
+
+
+;; ## RDD Partitioning
+
+(defn coalesce
+  "Decrease the number of partitions in `rdd` to `n`. Useful for running
+  operations more efficiently after filtering down a large dataset."
+  ^JavaRDD
+  ([n ^JavaRDD rdd]
+   (coalesce n false rdd))
+  ([n shuffle? ^JavaRDD rdd]
+   (rdd/set-callsite-name
+     (.coalesce rdd (int n) (boolean shuffle?))
+     (int n)
+     (boolean shuffle?))))
 
 
 

@@ -31,6 +31,7 @@
 (gen-function Fn2 fn2)
 (gen-function Fn3 fn3)
 (gen-function VoidFn void-fn)
+(gen-function ComparatorFn comparator-fn)
 (gen-function FlatMapFn1 flat-map-fn)
 (gen-function FlatMapFn2 flat-map-fn2)
 (gen-function PairFlatMapFn pair-flat-map-fn)
@@ -40,6 +41,9 @@
 
 ;; ## Inline Functions
 
+;; TODO: decide if these are useful
+
+#_
 (defn- anonymous-function-name
   "Generate a deterministic name for an anonymous function by referencing the
   ns and source code."
@@ -50,6 +54,7 @@
     (symbol)))
 
 
+#_
 (defn- ns-requires
   "Discover all namespaces required to run code from `form-ns` by examining
   the `ns-refers` and `ns-aliases`. Returns a set of required namespaces as
@@ -58,7 +63,8 @@
   **NOTE:** This won't catch fully-qualified references to other namespaces!"
   [form-ns]
   ;; TODO: are there more namespaces that can be ignored here?
-  (let [implicit? #{"clojure.core"}]
+  (let [implicit? #{"clojure.core"
+                    "clojure.java.io"}]
     (set/union
       ;; Namespaces referenced by a local alias.
       (into #{}
@@ -79,6 +85,7 @@
             (ns-refers form-ns)))))
 
 
+#_
 (defmacro fn
   "Define a function as in `clojure.core/fn` but ensures the result is
   serializable for use with Spark. Only accepts a single arity signature.

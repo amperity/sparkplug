@@ -1,9 +1,7 @@
 (ns sparkler.name
-  "Utilities for working with function, class, and RDD names."
+  "Utilities for working with function and class names."
   (:require
-    [clojure.string :as str])
-  (:import
-    org.apache.spark.rdd.RDD))
+    [clojure.string :as str]))
 
 
 (defn- internal-call?
@@ -42,25 +40,12 @@
   (unmangle (.getName (class f))))
 
 
-(defn set-callsite-name
-  "Provide a name for the given RDD by looking at the current stack. Returns
-  the updated RDD if the name could be determined."
-  ^org.apache.spark.rdd.RDD
-  [^RDD rdd & args]
-  (try
-    (let [callsite (stack-callsite)
-          filename (.getFileName callsite)
-          classname (.getClassName callsite)
-          line-number (.getLineNumber callsite)
-          rdd-name (format "#<%s: %s %s:%d%s>"
-                           (.getSimpleName (class rdd))
-                           (unmangle classname)
-                           filename
-                           line-number
-                           (if (seq args)
-                             (str " [" (str/join ", " args) "]")
-                             ""))]
-      (.setName rdd rdd-name))
-    (catch Exception e
-      ;; Ignore errors and return an unnamed RDD.
-      rdd)))
+(defn callsite-name
+  "Generate a name for the callsite of this function by looking at the current
+  stack. Ignores core Clojure and internal function frames."
+  []
+  (let [callsite (stack-callsite)
+        filename (.getFileName callsite)
+        classname (.getClassName callsite)
+        line-number (.getLineNumber callsite)]
+    (format "%s %s:%d" (unmangle classname) filename line-number)))

@@ -12,11 +12,6 @@ import java.util.Comparator;
  */
 public class ComparatorFn extends SerializableFn implements Comparator<Object> {
 
-    public ComparatorFn(IFn f) {
-        super(f);
-    }
-
-
     public ComparatorFn(IFn f, Collection<String> namespaces) {
         super(f, namespaces);
     }

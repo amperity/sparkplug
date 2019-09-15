@@ -13,11 +13,6 @@ import org.apache.spark.api.java.function.VoidFunction;
  */
 public class VoidFn extends SerializableFn implements VoidFunction {
 
-    public VoidFn(IFn f) {
-        super(f);
-    }
-
-
     public VoidFn(IFn f, Collection<String> namespaces) {
         super(f, namespaces);
     }

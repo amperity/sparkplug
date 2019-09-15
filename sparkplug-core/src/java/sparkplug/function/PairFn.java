@@ -18,11 +18,6 @@ import scala.Tuple2;
  */
 public class PairFn extends SerializableFn implements PairFunction {
 
-    public PairFn(IFn f) {
-        super(f);
-    }
-
-
     public PairFn(IFn f, Collection<String> namespaces) {
         super(f, namespaces);
     }

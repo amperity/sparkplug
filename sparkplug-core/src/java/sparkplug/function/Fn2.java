@@ -13,11 +13,6 @@ import org.apache.spark.api.java.function.Function2;
  */
 public class Fn2 extends SerializableFn implements Function2 {
 
-    public Fn2(IFn f) {
-        super(f);
-    }
-
-
     public Fn2(IFn f, Collection<String> namespaces) {
         super(f, namespaces);
     }

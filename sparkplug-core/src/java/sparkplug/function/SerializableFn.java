@@ -2,9 +2,6 @@ package sparkplug.function;
 
 
 import clojure.lang.IFn;
-import clojure.lang.IPersistentMap;
-import clojure.lang.Keyword;
-import clojure.lang.Ref;
 import clojure.lang.RT;
 import clojure.lang.Symbol;
 import clojure.lang.Var;
@@ -14,15 +11,10 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,22 +44,6 @@ public abstract class SerializableFn implements Serializable {
      * serializable.
      */
     private SerializableFn() {
-    }
-
-
-    /**
-     * Construct a new serializable wrapper for the function.
-     *
-     * Required namespaces will be automatically discovered by walking the
-     * object.
-     *
-     * @param fn Clojure function to wrap
-     */
-    protected SerializableFn(IFn fn) {
-        this.f = fn;
-        Set<String> references = findVarNamespaces(f);
-        this.namespaces = new ArrayList<String>(references);
-        Collections.sort(this.namespaces);
     }
 
 
@@ -162,90 +138,6 @@ public abstract class SerializableFn implements Serializable {
             }
         } catch (Exception ex) {
             logger.warn("Error loading namespace " + namespace, ex);
-        }
-    }
-
-
-    /**
-     * Walk the given object to find namespaces referenced by the value.
-     *
-     * @param obj a Clojure value to walk
-     * @return a set of namespace strings
-     */
-    public static Set<String> findVarNamespaces(Object obj) {
-        Set<String> references = new HashSet<String>();
-        Set<Object> visited = new HashSet<Object>();
-        findVarNamespaces(references, visited, obj);
-        references.remove("clojure.core");
-        return references;
-    }
-
-
-    /**
-     * Walk the given object to find namespaces referenced by the value.
-     * Namespace references are added to the given set.
-     *
-     * @param references set to add discovered namespaces to
-     * @param visited set of values which have already been walked
-     * @param obj object to walk
-     */
-    private static void findVarNamespaces(Set<String> references, Set<Object> visited, Object obj) {
-        // Simple types that can't have namespace references.
-        if (obj == null
-                || obj instanceof Boolean
-                || obj instanceof String
-                || obj instanceof Number
-                || obj instanceof Keyword
-                || obj instanceof Symbol
-                || obj instanceof Ref) {
-            return;
-        }
-
-        // See if we've already visited this object.
-        if (visited.contains(obj)) {
-            return;
-        }
-
-        visited.add(obj);
-
-        // Vars directly represent a namespace dependency.
-        if (obj instanceof Var) {
-            Var v = (Var)obj;
-            references.add(v.ns.getName().toString());
-            return;
-        }
-
-        // Special case maps and records to traverse over their contents in
-        // addition to their fields.
-        if (obj instanceof IPersistentMap) {
-            IPersistentMap map = (IPersistentMap)obj;
-            for (Object entry : map) {
-                findVarNamespaces(references, visited, entry);
-            }
-        }
-
-        // Traverse the fields of the value for more references.
-        for (Field field : obj.getClass().getDeclaredFields()) {
-            // Only traverse static fields of maps. (why?)
-            if (!(obj instanceof IPersistentMap) || Modifier.isStatic(field.getModifiers())) {
-                boolean accessible = field.isAccessible();
-                try {
-                    field.setAccessible(true);
-                    Object val = field.get(obj);
-                    // TODO why only these two types?
-                    if (val instanceof IFn || val instanceof IPersistentMap) {
-                        findVarNamespaces(references, visited, val);
-                    }
-                } catch (IllegalAccessException ex) {
-                    logger.warn("Error resolving namespaces references in " + obj, ex);
-                } finally {
-                    try {
-                        field.setAccessible(accessible);
-                    } catch (Exception ex) {
-                        // ignored
-                    }
-                }
-            }
         }
     }
 

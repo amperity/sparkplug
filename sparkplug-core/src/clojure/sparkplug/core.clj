@@ -14,6 +14,7 @@
     [sparkplug.name :as name]
     [sparkplug.rdd :as rdd])
   (:import
+    org.apache.spark.Partitioner
     (org.apache.spark.api.java
       JavaPairRDD
       JavaRDD
@@ -221,7 +222,8 @@
   partition."
   ^JavaPairRDD
   [^JavaRDD rdd]
-  (rdd/set-callsite-name (.zipWithIndex rdd)))
+  (rdd/set-callsite-name
+    (.zipWithIndex rdd)))
 
 
 (defn zip-unique-ids
@@ -233,7 +235,183 @@
   gaps, but this method _won't_ trigger a spark job, unlike `zip-indexed`."
   ^JavaPairRDD
   [^JavaRDD rdd]
-  (rdd/set-callsite-name (.zipWithUniqueId rdd)))
+  (rdd/set-callsite-name
+    (.zipWithUniqueId rdd)))
+
+
+
+;; ## Multi-RDD Functions
+
+(defn union
+  "Construct a union of the elements in the provided RDDs. Any identical
+  elements will appear multiple times."
+  ^JavaRDD
+  ([^JavaRDD rdd1 ^JavaRDD rdd2]
+   (rdd/set-callsite-name
+     (.union rdd1 rdd2)))
+  ^JavaRDD
+  ([^JavaRDD rdd1 ^JavaRDD rdd2 & rdds]
+   (rdd/set-callsite-name
+     (.union (JavaSparkContext/fromSparkContext (.context rdd1))
+             (into-array JavaRDD (list* rdd1 rdd2 rdds))))))
+
+
+(defn cogroup
+  "Produe a new RDD containing an element for each key `k` in the given pair
+  RDDs mapped to a tuple of the values from all RDDs as lists.
+
+  If the input RDDs have types `(K, A)`, `(K, B)`, and `(K, C)`, the grouped
+  RDD will have type `(K, (list(A), list(B), list(C)))`."
+  ^JavaPairRDD
+  ([^JavaPairRDD rdd1 ^JavaPairRDD rdd2]
+   (rdd/set-callsite-name
+     (.cogroup rdd1 rdd2)))
+  ^JavaPairRDD
+  ([^JavaPairRDD rdd1 ^JavaPairRDD rdd2 ^JavaPairRDD rdd3]
+   (rdd/set-callsite-name
+     (.cogroup rdd1 rdd2 rdd3)))
+  ^JavaPairRDD
+  ([^JavaPairRDD rdd1 ^JavaPairRDD rdd2 ^JavaPairRDD rdd3 ^JavaPairRDD rdd4]
+   (rdd/set-callsite-name
+     (.cogroup rdd1 rdd2 rdd3 rdd4))))
+
+
+(defn cogroup-partitioned
+  "Produe a new RDD containing an element for each key `k` in the given pair
+  RDDs mapped to a tuple of the values from all RDDs as lists. The resulting
+  RDD partitions may be controlled by setting `partitions` to an integer number
+  or a `Partitioner` instance.
+
+  If the input RDDs have types `(K, A)`, `(K, B)`, and `(K, C)`, the grouped
+  RDD will have type `(K, (List(A), List(B), List(C)))`."
+  ^JavaPairRDD
+  ([^JavaPairRDD rdd1 ^JavaPairRDD rdd2 partitions]
+   (if (instance? Partitioner partitions)
+     (rdd/set-callsite-name
+       (.cogroup rdd1 rdd2 ^Partitioner partitions)
+       (class partitions))
+     (rdd/set-callsite-name
+       (.cogroup rdd1 rdd2 (int partitions))
+       (int partitions))))
+  ^JavaPairRDD
+  ([^JavaPairRDD rdd1 ^JavaPairRDD rdd2 ^JavaPairRDD rdd3 partitions]
+   (if (instance? Partitioner partitions)
+     (rdd/set-callsite-name
+       (.cogroup rdd1 rdd2 rdd3 ^Partitioner partitions)
+       (class partitions))
+     (rdd/set-callsite-name
+       (.cogroup rdd1 rdd2 rdd3 (int partitions))
+       (int partitions))))
+  ^JavaPairRDD
+  ([^JavaPairRDD rdd1
+    ^JavaPairRDD rdd2
+    ^JavaPairRDD rdd3
+    ^JavaPairRDD rdd4
+    partitions]
+   (if (instance? Partitioner partitions)
+     (rdd/set-callsite-name
+       (.cogroup rdd1 rdd2 rdd3 rdd4 ^Partitioner partitions)
+       (class partitions))
+     (rdd/set-callsite-name
+       (.cogroup rdd1 rdd2 rdd3 rdd4 (int partitions))
+       (int partitions)))))
+
+
+(defn join
+  "Construct an RDD containing all pairs of elements with matching keys in
+  `rdd1` and `rdd2`. Each pair of elements will be returned as a tuple of
+  `(k, (v, w))`, where `(k, v)` is in `rdd1` and `(k, w)` is in `rdd2`.
+
+  Performs a hash join across the cluster. Optionally, `partitions` may be
+  provided as an integer number or a partitioner instance to control the
+  partitioning of the resulting RDD."
+  ^JavaPairRDD
+  ([^JavaPairRDD rdd1 ^JavaPairRDD rdd2]
+   (rdd/set-callsite-name
+     (.join rdd1 rdd2)))
+  ([^JavaPairRDD rdd1 ^JavaPairRDD rdd2 partitions]
+   (if (instance? Partitioner partitions)
+     (rdd/set-callsite-name
+       (.join rdd1 rdd2 ^Partitioner partitions)
+       (class partitions))
+     (rdd/set-callsite-name
+       (.join rdd1 rdd2 (int partitions))
+       (int partitions)))))
+
+
+(defn left-outer-join
+  "Perform a left outer join of `rdd1` and `rdd2`.
+
+  For each element `(k, v)` in `rdd1`, the resulting RDD will either contain
+  all pairs `(k, (v, Some(w)))` for `(k, w)` in `rdd2`, or the pair
+  `(k, (v, None))` if no elements in `rdd2` have key `k`.
+
+  Hash-partitions the resulting RDD using the existing partitioner/parallelism
+  level unless `partitions` is be provided as an integer number or a
+  partitioner instance."
+  ^JavaPairRDD
+  ([^JavaPairRDD rdd1 ^JavaPairRDD rdd2]
+   (rdd/set-callsite-name
+     (.leftOuterJoin rdd1 rdd2)))
+  ([^JavaPairRDD rdd1 ^JavaPairRDD rdd2 partitions]
+   (if (instance? Partitioner partitions)
+     (rdd/set-callsite-name
+       (.leftOuterJoin rdd1 rdd2 ^Partitioner partitions)
+       (class partitions))
+     (rdd/set-callsite-name
+       (.leftOuterJoin rdd1 rdd2 (int partitions))
+       (int partitions)))))
+
+
+(defn right-outer-join
+  "Perform a right outer join of `rdd1` and `rdd2`.
+
+  For each element `(k, w)` in `rdd2`, the resulting RDD will either contain
+  all pairs `(k, (Some(v), w))` for `(k, v)` in `rdd1`, or the pair
+  `(k, (None, w))` if no elements in `rdd1` have key `k`.
+
+  Hash-partitions the resulting RDD using the existing partitioner/parallelism
+  level unless `partitions` is be provided as an integer number or a
+  partitioner instance."
+  ^JavaPairRDD
+  ([^JavaPairRDD rdd1 ^JavaPairRDD rdd2]
+   (rdd/set-callsite-name
+     (.rightOuterJoin rdd1 rdd2)))
+  ([^JavaPairRDD rdd1 ^JavaPairRDD rdd2 partitions]
+   (if (instance? Partitioner partitions)
+     (rdd/set-callsite-name
+       (.rightOuterJoin rdd1 rdd2 ^Partitioner partitions)
+       (class partitions))
+     (rdd/set-callsite-name
+       (.rightOuterJoin rdd1 rdd2 (int partitions))
+       (int partitions)))))
+
+
+(defn full-outer-join
+  "Perform a full outer join of `rdd1` and `rdd2`.
+
+  For each element `(k, v)` in `rdd1`, the resulting RDD will either contain all
+  pairs `(k, (Some(v), Some(w)))` for `(k, w)` in `rdd2`, or the pair
+  `(k, (Some(v), None))` if no elements in other have key `k`. Similarly, for
+  each element `(k, w)` in `rdd2`, the resulting RDD will either contain all
+  pairs `(k, (Some(v), Some(w)))` for `v` in `rdd1`, or the pair
+  `(k, (None, Some(w)))` if no elements in `rdd1` have key `k`.
+
+  Hash-partitions the resulting RDD using the existing partitioner/parallelism
+  level unless `partitions` is be provided as an integer number or a
+  partitioner instance."
+  ^JavaPairRDD
+  ([^JavaPairRDD rdd1 ^JavaPairRDD rdd2]
+   (rdd/set-callsite-name
+     (.rightOuterJoin rdd1 rdd2)))
+  ([^JavaPairRDD rdd1 ^JavaPairRDD rdd2 partitions]
+   (if (instance? Partitioner partitions)
+     (rdd/set-callsite-name
+       (.rightOuterJoin rdd1 rdd2 ^Partitioner partitions)
+       (class partitions))
+     (rdd/set-callsite-name
+       (.rightOuterJoin rdd1 rdd2 (int partitions))
+       (int partitions)))))
 
 
 

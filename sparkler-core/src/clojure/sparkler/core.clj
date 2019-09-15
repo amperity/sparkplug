@@ -135,19 +135,22 @@
     (name/fn-name f)))
 
 
-(defn map-partition
+(defn map-partitions
   "Map the function `f` over each partition in `rdd`, producing a sequence of
   results. Returns an RDD representing the concatenation of all the partition
   results. The function will be called with an iterator of the elements of each
   partition."
   ^JavaRDD
-  [f ^JavaRDD rdd]
-  (name/set-callsite-name
-    (.mapPartitions rdd (f/flat-map-fn f))
-    (name/fn-name f)))
+  ([f ^JavaRDD rdd]
+   (map-partitions f false rdd))
+  ^JavaRDD
+  ([f preserve-partitioni ^JavaRDD rdd]
+   (name/set-callsite-name
+     (.mapPartitions rdd (f/flat-map-fn f))
+     (name/fn-name f))))
 
 
-(defn map-partition-indexed
+(defn map-partitions-indexed
   "Map the function `f` over each partition in `rdd`, producing a sequence of
   results. Returns an RDD representing the concatenation of all the partition
   results. The function will be called with the partition index and an iterator
@@ -162,6 +165,14 @@
 
 ;; ## Pair RDD Transformations
 
+(defn keys
+  "Transform `rdd` by replacing each pair with its key. Returns a new RDD
+  representing the keys."
+  ^JavaRDD
+  [^JavaPairRDD rdd]
+  (name/set-callsite-name (.keys rdd)))
+
+
 (defn values
   "Transform `rdd` by replacing each pair with its value. Returns a new RDD
   representing the values."
@@ -170,7 +181,16 @@
   (name/set-callsite-name (.values rdd)))
 
 
-(defn map->pair
+(defn key-by
+  "Creates pairs from the elements in `rdd` by using `f` to compute a key for
+  each value."
+  [f ^JavaRDD rdd]
+  (name/set-callsite-name
+    (.mapToPair rdd (f/pair-fn (juxt f identity)))
+    (name/fn-name f)))
+
+
+(defn map->pairs
   "Map the function `f` over each element of `rdd`. Returns a new pair RDD
   representing the transformed elements."
   ^JavaPairRDD
@@ -180,7 +200,7 @@
     (name/fn-name f)))
 
 
-(defn mapcat->pair
+(defn mapcat->pairs
   "Map the function `f` over each element in `rdd` to produce a sequence of
   key-value pairs. Returns a new pair RDD representing the concatenation of all
   result pairs."
@@ -191,17 +211,22 @@
     (name/fn-name f)))
 
 
-(defn map-partitions->pair
+(defn map-partitions->pairs
   "Map the function `f` over each partition in `rdd`, producing a sequence of
   key-value pairs. The function will be called with an iterator of the elements
   of the partition."
-  [f preserve-partitioning? ^JavaRDD rdd]
-  (name/set-callsite-name
-    (.mapPartitionsToPair rdd
-                          (f/pair-flat-map-fn f)
-                          (boolean preserve-partitioning?))
-    (name/fn-name f)
-    (boolean preserve-partitioning?)))
+  ^JavaPairRDD
+  ([f ^JavaRDD rdd]
+   (map-partitions->pairs f false rdd))
+  ^JavaPairRDD
+  ([f preserve-partitioning? ^JavaRDD rdd]
+   (name/set-callsite-name
+     (.mapPartitionsToPair
+       rdd
+       (f/pair-flat-map-fn f)
+       (boolean preserve-partitioning?))
+     (name/fn-name f)
+     (boolean preserve-partitioning?))))
 
 
 (defn map-values
@@ -233,8 +258,39 @@
   function must accept two arguments and should be commutative and associative
   so that it can be computed correctly in parallel.
 
-  This is an action that causes computation." ; TODO: right?
+  This is an action that causes computation."
   [f ^JavaRDD rdd]
-  (name/set-callsite-name
-    (.reduce rdd (f/fn2 f))
-    (name/fn-name f)))
+  (.reduce rdd (f/fn2 f)))
+
+
+(defn fold
+  "Aggregate the elements of each partition in `rdd`, followed by the results
+  for all the partitions, by using the given associative function `f` and a
+  neutral `zero` value.
+
+  This is an action that causes computation."
+  [f zero ^JavaRDD rdd]
+  (.fold rdd zero (f/fn2 f)))
+
+
+(defn aggregate
+  "Aggregate the elements of each partition in `rdd` using `aggregator`, then
+  merge the results for all partitions using `combiner`. Both functions will be
+  seeded with the neutral `zero` value.
+
+  This is an action that causes computation."
+  [aggregator combiner zero ^JavaRDD rdd]
+  (.aggregate rdd zero (f/fn2 aggregator) (f/fn2 combiner)))
+
+
+
+;; ## RDD Actions
+
+(defn foreach
+  "Apply the function `f` to all elements of `rdd`. The function will execute
+  on the executors where the data resides.
+
+  Consider `foreach-partition` for efficiency if handling an element requires
+  costly resource acquisition such as a database connection."
+  [f ^JavaRDD rdd]
+  (.foreach rdd (f/void-fn f)))

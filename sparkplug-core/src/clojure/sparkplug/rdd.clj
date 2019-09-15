@@ -1,4 +1,4 @@
-(ns sparkler.rdd
+(ns sparkplug.rdd
   "This namespace provides the main API for writing Spark tasks.
 
   Most operations in this namespace place the RDD last in the argument list,
@@ -7,7 +7,7 @@
   code."
   (:require
     [clojure.string :as str]
-    [sparkler.name :as name])
+    [sparkplug.name :as name])
   (:import
     (org.apache.spark.api.java
       JavaPairRDD

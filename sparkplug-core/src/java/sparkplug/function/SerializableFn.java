@@ -1,4 +1,4 @@
-package sparkler.function;
+package sparkplug.function;
 
 
 import clojure.lang.IFn;

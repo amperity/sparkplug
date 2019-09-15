@@ -6,7 +6,7 @@
     [clojure.string :as str]
     [clojure.tools.namespace.repl :refer [refresh]])
   (:import
-    sparkler.function.SerializableFn))
+    sparkplug.function.SerializableFn))
 
 
 (defn find-var-namespaces

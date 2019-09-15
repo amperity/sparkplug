@@ -1,6 +1,6 @@
-(defproject amperity/sparkler "0.1.0-SNAPSHOT"
+(defproject amperity/sparkplug "0.1.0-SNAPSHOT"
   :description "Clojure API for Apache Spark"
-  :url "https://github.com/amperity/sparkler"
+  :url "https://github.com/amperity/sparkplug"
   :license {:name "Apache License 2.0"
             :url "http://www.apache.org/licenses/LICENSE-2.0"}
 
@@ -13,13 +13,13 @@
 
   :dependencies
   [[org.clojure/clojure "1.10.1"]
-   [amperity/sparkler-core "0.1.0-SNAPSHOT"]
-   [amperity/sparkler-sql "0.1.0-SNAPSHOT"]
-   [amperity/sparkler-ml "0.1.0-SNAPSHOT"]]
+   [amperity/sparkplug-core "0.1.0-SNAPSHOT"]
+   [amperity/sparkplug-sql "0.1.0-SNAPSHOT"]
+   [amperity/sparkplug-ml "0.1.0-SNAPSHOT"]]
 
   :monolith
-  {:project-dirs ["sparkler-core"
-                  "sparkler-sql"
-                  "sparkler-ml"]
+  {:project-dirs ["sparkplug-core"
+                  "sparkplug-sql"
+                  "sparkplug-ml"]
    :inherit [:deploy-branches
              :pedantic?]})

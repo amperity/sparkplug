@@ -10,4 +10,4 @@ the basic building blocks of a Spark application, you can use this directly.
 Library releases are published on Clojars. To use the latest version with
 Leiningen, add the following dependency to your project:
 
-[![Clojars Project](https://clojars.org/amperity/sparkler-core/latest-version.svg)](https://clojars.org/amperity/sparkler-core)
+[![Clojars Project](https://clojars.org/amperity/sparkplug-core/latest-version.svg)](https://clojars.org/amperity/sparkplug-core)

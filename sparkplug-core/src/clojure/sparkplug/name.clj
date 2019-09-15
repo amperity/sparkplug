@@ -1,4 +1,4 @@
-(ns sparkler.name
+(ns sparkplug.name
   "Utilities for working with function and class names."
   (:require
     [clojure.string :as str]))
@@ -9,7 +9,7 @@
   function call that should not be considered a callsite."
   [^StackTraceElement element]
   (let [class-name (.getClassName element)]
-    (or (str/starts-with? class-name "sparkler.")
+    (or (str/starts-with? class-name "sparkplug.")
         (str/starts-with? class-name "clojure.lang."))))
 
 

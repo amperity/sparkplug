@@ -1,6 +1,6 @@
-(defproject amperity/sparkler-core "0.1.0-SNAPSHOT"
+(defproject amperity/sparkplug-core "0.1.0-SNAPSHOT"
   :description "Clojure API for Apache Spark"
-  :url "https://github.com/amperity/sparkler"
+  :url "https://github.com/amperity/sparkplug"
   :scm {:dir ".."}
   :license {:name "Apache License 2.0"
             :url "http://www.apache.org/licenses/LICENSE-2.0"}
@@ -31,8 +31,8 @@
 
    :dev
    {:jvm-opts ["-server" "-Xmx2g"]
-    :aot [sparkler.core
-          sparkler.function]}
+    :aot [sparkplug.core
+          sparkplug.function]}
 
    :repl
    {:source-paths ["dev"]

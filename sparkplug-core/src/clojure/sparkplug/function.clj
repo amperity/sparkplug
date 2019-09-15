@@ -1,11 +1,11 @@
-(ns sparkler.function
+(ns sparkplug.function
   "This namespace generates function classes for various kinds of interop with
   Spark and Scala. This namespace **must** be AOT compiled before using Spark."
   (:refer-clojure :exclude [fn])
   (:require
     [clojure.set :as set])
   (:import
-    sparkler.function.SerializableFn))
+    sparkplug.function.SerializableFn))
 
 
 ;; ## Function Wrappers
@@ -23,8 +23,8 @@
      ~(str "Construct a new serializable " clazz " function wrapping `f`.")
      [~'f]
      (if-let [namespaces# (::requires (meta ~'f))]
-       (new ~(symbol  (str "sparkler.function." clazz)) ~'f namespaces#)
-       (new ~(symbol  (str "sparkler.function." clazz)) ~'f))))
+       (new ~(symbol  (str "sparkplug.function." clazz)) ~'f namespaces#)
+       (new ~(symbol  (str "sparkplug.function." clazz)) ~'f))))
 
 
 (gen-function Fn1 fn1)

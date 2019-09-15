@@ -1,9 +1,9 @@
 Clojure Spark API
 =================
 
-[![CircleCI](https://circleci.com/gh/amperity/sparkler.svg?style=svg&circle-token=e57a92e79aa9113f1950498cbeeb0880c3f587d3)](https://circleci.com/gh/amperity/sparkler/tree/master)
+[![CircleCI](https://circleci.com/gh/amperity/sparkplug.svg?style=svg&circle-token=e57a92e79aa9113f1950498cbeeb0880c3f587d3)](https://circleci.com/gh/amperity/sparkplug/tree/master)
 
-Sparkler is a Clojure API for [Apache Spark](http://spark.apache.org/).
+SparkPlug is a Clojure API for [Apache Spark](http://spark.apache.org/).
 
 
 ## Installation
@@ -11,7 +11,7 @@ Sparkler is a Clojure API for [Apache Spark](http://spark.apache.org/).
 Library releases are published on Clojars. To use the latest version with
 Leiningen, add the following dependency to your project:
 
-[![Clojars Project](https://clojars.org/amperity/sparkler/latest-version.svg)](https://clojars.org/amperity/sparkler)
+[![Clojars Project](https://clojars.org/amperity/sparkplug/latest-version.svg)](https://clojars.org/amperity/sparkplug)
 
 This will pull in the omnibus package, which in turn depends on each subproject
 of the same version. You may instead depend on the subprojects directly if you

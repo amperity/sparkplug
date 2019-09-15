@@ -31,9 +31,13 @@
 
    :dev
    {:jvm-opts ["-server" "-Xmx2g"]
-    #_#_
     :aot [sparkler.core
           sparkler.function]}
+
+   :repl
+   {:source-paths ["dev"]
+    :dependencies
+    [[org.clojure/tools.namespace "0.2.11"]]}
 
    :spark-2.2
    ^{:pom-scope :provided}

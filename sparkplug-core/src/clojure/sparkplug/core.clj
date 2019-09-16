@@ -259,8 +259,12 @@
   ^JavaRDD
   ([^JavaRDD rdd1 ^JavaRDD rdd2 & rdds]
    (rdd/set-callsite-name
+     ;; This method signature is a bit tricky to target since
+     ;; `JavaSparkContext` also defines `union` on `JavaPairRDD` and
+     ;; `JavaDoubleRDD` which extend the base `JavaRDD` type.
      (.union (JavaSparkContext/fromSparkContext (.context rdd1))
-             (into-array JavaRDD (list* rdd1 rdd2 rdds))))))
+             rdd1
+             ^java.util.List (list* rdd2 rdds)))))
 
 
 (defn intersection

@@ -30,9 +30,7 @@
    [:base :system :user :provided :spark-2.4 :dev]
 
    :dev
-   {:jvm-opts ["-server" "-Xmx2g"]
-    :aot [sparkplug.core
-          sparkplug.function]}
+   {:jvm-opts ["-server" "-Xmx2g"]}
 
    :repl
    {:source-paths ["dev"]

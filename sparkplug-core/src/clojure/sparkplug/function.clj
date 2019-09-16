@@ -1,8 +1,6 @@
 (ns sparkplug.function
   "This namespace generates function classes for various kinds of interop with
   Spark and Scala. This namespace **must** be AOT compiled before using Spark."
-  (:require
-    [clojure.set :as set])
   (:import
     (java.lang.reflect
       Field
@@ -86,21 +84,16 @@
 ;; ## Function Wrappers
 
 (defmacro ^:private gen-function
-  "Generate a new function class that extends `SerializableFn` and implements
-  interfaces for compatibility with Spark and Scala.
-
-  Outputs a new class named by `clazz` with a constructor function named by
-  `constructor`. The class will implement the interface of the same name in
-  `org.apache.spark.api.java.function`."
-  [clazz constructor]
-  ^:cljfmt/ignore
-  `(defn ~constructor
-     ~(str "Construct a new serializable " clazz " function wrapping `f`.")
-     [~'f]
-     (let [references# (namespace-references ~'f)]
-       (new ~(symbol (str "sparkplug.function." clazz))
-            ~'f
-            (mapv str references#)))))
+  "Generate a new constructor for functions of the `fn-name` class that extends
+  `SerializableFn` and implements interfaces for compatibility with Spark."
+  [fn-name constructor]
+  (let [class-sym (symbol (str "sparkplug.function." fn-name))]
+    ^:cljfmt/ignore
+    `(defn ~(vary-meta constructor assoc :tag class-sym)
+       ~(str "Construct a new serializable " fn-name " function wrapping `f`.")
+       [~'f]
+       (let [references# (namespace-references ~'f)]
+         (new ~class-sym ~'f (mapv str references#))))))
 
 
 (gen-function Fn1 fn1)

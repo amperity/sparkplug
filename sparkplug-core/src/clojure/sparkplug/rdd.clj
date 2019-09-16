@@ -5,7 +5,7 @@
   just like Clojure collection functions. This lets you compose them using the
   thread-last macro (`->>`), making it simple to migrate existing Clojure
   code."
-  (:refer-clojure :exclude [name])
+  (:refer-clojure :exclude [empty name])
   (:require
     [clojure.string :as str]
     [sparkplug.name :as name])
@@ -53,12 +53,21 @@
 
 ;; ## RDD Construction
 
+(defn empty
+  "Construct a new empty RDD."
+  ^JavaRDD
+  ([^JavaSparkContext spark-context]
+   (.emptyRDD spark-context)))
+
+
 (defn parallelize
   "Distribute a local collection to form an RDD. Optionally accepts a number
   of partitions to slice the collection into."
+  ^JavaRDD
   ([^JavaSparkContext spark-context coll]
    (set-callsite-name
      (.parallelize spark-context coll)))
+  ^JavaRDD
   ([^JavaSparkContext spark-context min-partitions coll]
    (set-callsite-name
      (.parallelize spark-context coll min-partitions)
@@ -68,9 +77,11 @@
 (defn parallelize-pairs
   "Distributes a local collection to form a pair RDD. Optionally accepts a
   number of partitions to slice the collection into."
+  ^JavaPairRDD
   ([^JavaSparkContext spark-context coll]
    (set-callsite-name
      (.parallelizePairs spark-context coll)))
+  ^JavaPairRDD
   ([^JavaSparkContext spark-context min-partitions coll]
    (set-callsite-name
      (.parallelizePairs spark-context coll min-partitions)

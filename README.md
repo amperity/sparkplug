@@ -1,7 +1,7 @@
 Clojure Spark API
 =================
 
-[![CircleCI](https://circleci.com/gh/amperity/sparkplug.svg?style=svg&circle-token=e57a92e79aa9113f1950498cbeeb0880c3f587d3)](https://circleci.com/gh/amperity/sparkplug/tree/master)
+[![CircleCI](https://circleci.com/gh/amperity/sparkplug.svg?style=shield&circle-token=8222ffae4136dd0fd585c5f2c361ea9426acee8d)](https://circleci.com/gh/amperity/sparkplug)
 
 SparkPlug is a Clojure API for [Apache Spark](http://spark.apache.org/).
 

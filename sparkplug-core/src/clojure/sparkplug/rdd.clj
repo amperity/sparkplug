@@ -5,10 +5,14 @@
   just like Clojure collection functions. This lets you compose them using the
   thread-last macro (`->>`), making it simple to migrate existing Clojure
   code."
-  (:refer-clojure :exclude [empty name])
+  (:refer-clojure :exclude [empty name partition-by])
   (:require
-    [clojure.string :as str])
+    [clojure.string :as str]
+    [sparkplug.scala :as scala])
   (:import
+    (org.apache.spark
+      HashPartitioner
+      Partitioner)
     (org.apache.spark.api.java
       JavaPairRDD
       JavaRDD
@@ -16,7 +20,7 @@
       StorageLevels)))
 
 
-;; ## RDD Naming
+;; ## Naming Functions
 
 (defn name
   "Return the current name for `rdd`."
@@ -97,7 +101,7 @@
 
 
 
-;; ## RDD Construction
+;; ## Dataset Construction
 
 (defn empty
   "Construct a new empty RDD."
@@ -174,6 +178,75 @@
   of text in the file."
   [path ^JavaRDD rdd]
   (.saveAsTextFile rdd (str path)))
+
+
+
+;; ## Partitioning Logic
+
+(defn hash-partitioner
+  "Construct a partitioner which will hash keys to distribute them uniformly
+  over `n` buckets. Optionally accepts a `key-fn` which will be called on each
+  key before hashing it."
+  ^HashPartitioner
+  ([n]
+   (HashPartitioner. n))
+  ^HashPartitioner
+  ([key-fn n]
+   (proxy [HashPartitioner] [n]
+     (getPartition
+       [k]
+       (let [k' (key-fn k)]
+         (mod (hash k') n))))))
+
+
+(defn partitions
+  "Return a vector of the partitions in `rdd`."
+  [^JavaRDD rdd]
+  (into [] (.partitions (.rdd rdd))))
+
+
+(defn partitioner
+  "Return the partitioner associated with `rdd`, or nil if there is no custom
+  partitioner."
+  [^JavaPairRDD rdd]
+  (scala/resolve-option
+    (.partitioner (.rdd rdd))))
+
+
+(defn partition-by
+  "Return a copy of `rdd` partitioned by the given `partitioner`."
+  [^Partitioner partitioner ^JavaPairRDD rdd]
+  (set-callsite-name
+    (.partitionBy rdd partitioner)
+    (.getName (class partitioner))))
+
+
+(defn repartition
+  "Returns a new `rdd` with exactly `n` partitions.
+
+  This method can increase or decrease the level of parallelism in this RDD.
+  Internally, this uses a shuffle to redistribute data.
+
+  If you are decreasing the number of partitions in this RDD, consider using
+  `coalesce`, which can avoid performing a shuffle."
+  ^JavaRDD
+  [n ^JavaRDD rdd]
+  (set-callsite-name
+    (.repartition rdd (int n))
+    (int n)))
+
+
+(defn coalesce
+  "Decrease the number of partitions in `rdd` to `n`. Useful for running
+  operations more efficiently after filtering down a large dataset."
+  ^JavaRDD
+  ([num-partitions ^JavaRDD rdd]
+   (coalesce num-partitions false rdd))
+  ([num-partitions shuffle? ^JavaRDD rdd]
+   (set-callsite-name
+     (.coalesce rdd (int num-partitions) (boolean shuffle?))
+     (int num-partitions)
+     (boolean shuffle?))))
 
 
 

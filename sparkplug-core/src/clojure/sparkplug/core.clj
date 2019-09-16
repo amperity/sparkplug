@@ -11,8 +11,8 @@
     [clojure.core :as c]
     [clojure.tools.logging :as log]
     [sparkplug.function :as f]
-    [sparkplug.name :as name]
-    [sparkplug.rdd :as rdd])
+    [sparkplug.rdd :as rdd]
+    [sparkplug.util :as u])
   (:import
     (org.apache.spark
       HashPartitioner
@@ -31,7 +31,7 @@
   [f ^JavaRDD rdd]
   (rdd/set-callsite-name
     (.filter rdd (f/fn1 (comp boolean f)))
-    (name/fn-name f)))
+    (u/fn-name f)))
 
 
 (defn map
@@ -41,7 +41,7 @@
   [f ^JavaRDD rdd]
   (rdd/set-callsite-name
     (.map rdd (f/fn1 f))
-    (name/fn-name f)))
+    (u/fn-name f)))
 
 
 (defn mapcat
@@ -52,7 +52,7 @@
   [f ^JavaRDD rdd]
   (rdd/set-callsite-name
     (.flatMap rdd (f/flat-map-fn f))
-    (name/fn-name f)))
+    (u/fn-name f)))
 
 
 (defn map-partitions
@@ -67,7 +67,7 @@
   ([f preserve-partitioni ^JavaRDD rdd]
    (rdd/set-callsite-name
      (.mapPartitions rdd (f/flat-map-fn f))
-     (name/fn-name f))))
+     (u/fn-name f))))
 
 
 (defn map-partitions-indexed
@@ -79,7 +79,7 @@
   [f ^JavaRDD rdd]
   (rdd/set-callsite-name
     (.mapPartitionsWithIndex rdd (f/fn2 f) true)
-    (name/fn-name f)))
+    (u/fn-name f)))
 
 
 (defn distinct
@@ -145,7 +145,7 @@
   [f ^JavaRDD rdd]
   (rdd/set-callsite-name
     (.mapToPair rdd (f/pair-fn (juxt f identity)))
-    (name/fn-name f)))
+    (u/fn-name f)))
 
 
 (defn map->pairs
@@ -155,7 +155,7 @@
   [f ^JavaRDD rdd]
   (rdd/set-callsite-name
     (.mapToPair rdd (f/pair-fn f))
-    (name/fn-name f)))
+    (u/fn-name f)))
 
 
 (defn mapcat->pairs
@@ -166,7 +166,7 @@
   [f ^JavaRDD rdd]
   (rdd/set-callsite-name
     (.flatMapToPair rdd (f/pair-flat-map-fn f))
-    (name/fn-name f)))
+    (u/fn-name f)))
 
 
 (defn map-partitions->pairs
@@ -183,7 +183,7 @@
        rdd
        (f/pair-flat-map-fn f)
        (boolean preserve-partitioning?))
-     (name/fn-name f)
+     (u/fn-name f)
      (boolean preserve-partitioning?))))
 
 
@@ -194,7 +194,7 @@
   [f ^JavaPairRDD rdd]
   (rdd/set-callsite-name
     (.mapValues rdd (f/fn1 f))
-    (name/fn-name f)))
+    (u/fn-name f)))
 
 
 (defn mapcat-values
@@ -205,7 +205,7 @@
   [f ^JavaPairRDD rdd]
   (rdd/set-callsite-name
     (.flatMapValues rdd (f/fn1 f))
-    (name/fn-name f)))
+    (u/fn-name f)))
 
 
 (defn zip-indexed
@@ -457,12 +457,12 @@
   ([f ^JavaRDD rdd]
    (rdd/set-callsite-name
      (.groupBy rdd (f/fn1 f))
-     (name/fn-name f)))
+     (u/fn-name f)))
   ^JavaPairRDD
   ([f num-partitions ^JavaRDD rdd]
    (rdd/set-callsite-name
      (.groupBy rdd (f/fn1 f) (int num-partitions))
-     (name/fn-name f)
+     (u/fn-name f)
      num-partitions)))
 
 
@@ -488,7 +488,7 @@
   [f ^JavaPairRDD rdd]
   (rdd/set-callsite-name
     (.reduceByKey rdd (f/fn2 f))
-    (name/fn-name f)))
+    (u/fn-name f)))
 
 
 (defn combine-by-key
@@ -506,9 +506,9 @@
                     (f/fn1 seq-fn)
                     (f/fn2 conj-fn)
                     (f/fn2 merge-fn))
-     (name/fn-name seq-fn)
-     (name/fn-name conj-fn)
-     (name/fn-name merge-fn)))
+     (u/fn-name seq-fn)
+     (u/fn-name conj-fn)
+     (u/fn-name merge-fn)))
   ^JavaPairRDD
   ([seq-fn conj-fn merge-fn num-partitions ^JavaPairRDD rdd]
    (rdd/set-callsite-name
@@ -517,9 +517,9 @@
                     (f/fn2 conj-fn)
                     (f/fn2 merge-fn)
                     (int num-partitions))
-     (name/fn-name seq-fn)
-     (name/fn-name conj-fn)
-     (name/fn-name merge-fn)
+     (u/fn-name seq-fn)
+     (u/fn-name conj-fn)
+     (u/fn-name merge-fn)
      num-partitions)))
 
 
@@ -542,7 +542,7 @@
      (.sortByKey rdd
                  (f/comparator-fn compare-fn)
                  (boolean ascending?))
-     (name/fn-name compare-fn)
+     (u/fn-name compare-fn)
      (boolean ascending?)))
   ^JavaPairRDD
   ([compare-fn ascending? num-partitions ^JavaPairRDD rdd]
@@ -551,7 +551,7 @@
                  (f/comparator-fn compare-fn)
                  (boolean ascending?)
                  (int num-partitions))
-     (name/fn-name compare-fn)
+     (u/fn-name compare-fn)
      (boolean ascending?)
      (int num-partitions))))
 

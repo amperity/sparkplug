@@ -1,8 +1,11 @@
-(ns sparkplug.name
-  "Utilities for working with function and class names."
+(ns sparkplug.util
+  "Commonly used utilities for working with functions, classes, and Scala
+  objects."
   (:require
     [clojure.string :as str]))
 
+
+;; ## Naming
 
 (defn- internal-call?
   "True if a stack-trace element should be ignored because it represents an internal

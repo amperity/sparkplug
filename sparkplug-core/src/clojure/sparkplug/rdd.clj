@@ -8,7 +8,7 @@
   (:refer-clojure :exclude [empty name])
   (:require
     [clojure.string :as str]
-    [sparkplug.name :as name])
+    [sparkplug.util :as u])
   (:import
     (org.apache.spark.api.java
       JavaPairRDD
@@ -40,7 +40,7 @@
   (try
     (let [rdd-name (format "#<%s: %s %s>"
                            (.getSimpleName (class rdd))
-                           (name/callsite-name)
+                           (u/callsite-name)
                            (if (seq args)
                              (str " [" (str/join ", " args) "]")
                              ""))]

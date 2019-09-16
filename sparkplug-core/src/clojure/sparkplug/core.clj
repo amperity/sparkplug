@@ -758,9 +758,8 @@
   "Return the partitioner associated with `rdd`, or nil if there is no custom
   partitioner."
   [^JavaPairRDD rdd]
-  (let [opt-part (.partitioner (.rdd rdd))]
-    (when (instance? scala.Some opt-part)
-      (.get ^scala.Some opt-part))))
+  (u/resolve-option
+    (.partitioner (.rdd rdd))))
 
 
 (defn partitions

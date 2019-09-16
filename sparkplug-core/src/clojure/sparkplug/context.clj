@@ -1,5 +1,7 @@
 (ns sparkplug.context
   "Functions for working with and creating Spark contexts."
+  (:require
+    [sparkplug.util :as u])
   (:import
     org.apache.spark.SparkConf
     org.apache.spark.api.java.JavaSparkContext))
@@ -104,9 +106,7 @@
    :jars (.jars spark-context)
    :default-min-partitions (.defaultMinPartitions spark-context)
    :default-parallelism (.defaultParallelism spark-context)
-   :checkpoint-dir (let [opt-dir (.getCheckpointDir spark-context)]
-                     (when (instance? scala.Some opt-dir)
-                       (.get ^scala.Some opt-dir)))})
+   :checkpoint-dir (u/resolve-option (.getCheckpointDir spark-context))})
 
 
 (defn get-local-property

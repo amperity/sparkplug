@@ -5,8 +5,8 @@
   just like Clojure collection functions. This lets you compose them using the
   thread-last macro (`->>`), making it simple to migrate existing Clojure
   code."
-  (:refer-clojure :exclude [map mapcat reduce first count take distinct filter
-                            group-by values partition-by keys max min])
+  (:refer-clojure :exclude [count distinct filter first group-by into keys map
+                            mapcat max min partition-by reduce take vals])
   (:require
     [clojure.core :as c]
     [clojure.tools.logging :as log]
@@ -14,29 +14,13 @@
     [sparkplug.name :as name]
     [sparkplug.rdd :as rdd])
   (:import
-    org.apache.spark.Partitioner
+    (org.apache.spark
+      HashPartitioner
+      Partitioner)
     (org.apache.spark.api.java
       JavaPairRDD
       JavaRDD
-      JavaSparkContext
-      StorageLevels)))
-
-
-;; ## Spark Context
-
-;; TODO: dynamic context var for convenience?
-
-(defn default-min-partitions
-  "Default min number of partitions for Hadoop RDDs when not given by user"
-  [^JavaSparkContext spark-context]
-  (.defaultMinPartitions spark-context))
-
-
-(defn default-parallelism
-  "Default level of parallelism to use when not given by user (e.g. parallelize and makeRDD)."
-  [^JavaSparkContext spark-context]
-  (.defaultParallelism spark-context))
-
+      JavaSparkContext)))
 
 
 ;; ## RDD Transformations
@@ -98,6 +82,20 @@
     (name/fn-name f)))
 
 
+(defn distinct
+  "Construct an RDD containing only a single copy of each distinct element in
+  `rdd`. Optionally accepts a number of partitions to size the resulting RDD
+  with."
+  ^JavaRDD
+  ([^JavaRDD rdd]
+   (rdd/set-callsite-name
+     (.distinct rdd)))
+  ([num-partitions ^JavaRDD rdd]
+   (rdd/set-callsite-name
+     (.distinct rdd (int num-partitions))
+     (int num-partitions))))
+
+
 (defn sample
   "Generate a randomly sampled subset of `rdd` with roughly `fraction` of the
   original elements. Callers can optionally select whether the sample happens
@@ -133,7 +131,7 @@
   (rdd/set-callsite-name (.keys rdd)))
 
 
-(defn values
+(defn vals
   "Transform `rdd` by replacing each pair with its value. Returns a new RDD
   representing the values."
   ^JavaRDD
@@ -242,6 +240,15 @@
 
 ;; ## Multi-RDD Functions
 
+(defn cartesian
+  "Construct an RDD representing the cartesian product of two RDDs. Returns a
+  new pair RDD containing all combinations of elements between the datasets."
+  ^JavaPairRDD
+  [^JavaRDD rdd1 ^JavaRDD rdd2]
+  (rdd/set-callsite-name
+    (.cartesian rdd1 rdd2)))
+
+
 (defn union
   "Construct a union of the elements in the provided RDDs. Any identical
   elements will appear multiple times."
@@ -254,6 +261,32 @@
    (rdd/set-callsite-name
      (.union (JavaSparkContext/fromSparkContext (.context rdd1))
              (into-array JavaRDD (list* rdd1 rdd2 rdds))))))
+
+
+(defn intersection
+  "Construct an RDD representing the intersection of elements which are in both
+  RDDs."
+  ^JavaRDD
+  [^JavaRDD rdd1 ^JavaRDD rdd2]
+  (rdd/set-callsite-name
+    (.intersection rdd1 rdd2)))
+
+
+(defn subtract
+  "Remove all elements from `rdd1` that are present in `rdd2`."
+  ^JavaRDD
+  [^JavaRDD rdd1 ^JavaRDD rdd2]
+  (rdd/set-callsite-name
+    (.subtract rdd1 rdd2)))
+
+
+(defn subtract-by-key
+  "Construct an RDD representing all pairs in `rdd1` for which there is no pair
+  with a matching key in `rdd2`."
+  ^JavaPairRDD
+  [^JavaPairRDD rdd1 ^JavaPairRDD rdd2]
+  (rdd/set-callsite-name
+    (.subtractByKey rdd1 rdd2)))
 
 
 (defn cogroup
@@ -524,7 +557,70 @@
 
 
 
-;; ## RDD Aggregation Actions
+;; ## RDD Actions
+
+(defn collect
+  "Collect the elements of `rdd` into a vector on the driver. Be careful not to
+  realize large datasets with this, as the driver will likely run out of
+  memory.
+
+  This is an action that causes computation."
+  [^JavaRDD rdd]
+  (vec (.collect rdd)))
+
+
+(defn into
+  "Collect the elements of `rdd` into a collection on the driver. Behaves like
+  `clojure.core/into`, including accepting an optional transducer.
+
+  Be careful not to realize large datasets with this, as the driver will likely
+  run out of memory.
+
+  This is an action that causes computation."
+  ;; TODO: auto-coerce Tuple2 to MapEntry?
+  ([coll ^JavaRDD rdd]
+   (c/into coll (.collect rdd)))
+  ([coll xf ^JavaRDD rdd]
+   (c/into coll xf (.collect rdd))))
+
+
+(defn foreach
+  "Apply the function `f` to all elements of `rdd`. The function will run on
+  the executors where the data resides.
+
+  Consider `foreach-partition` for efficiency if handling an element requires
+  costly resource acquisition such as a database connection.
+
+  This is an action that causes computation."
+  [f ^JavaRDD rdd]
+  (.foreach rdd (f/void-fn f)))
+
+
+(defn foreach-partition
+  "Apply the function `f` to all elements of `rdd` by calling it with a
+  sequence of each partition's elements. The function will run on the executors
+  where the data resides.
+
+  This is an action that causes computation."
+  [f ^JavaRDD rdd]
+  (.foreachPartition rdd (f/void-fn (comp f iterator-seq))))
+
+
+(defn count
+  "Count the number of elements in `rdd`.
+
+  This is an action that causes computation."
+  [^JavaRDD rdd]
+  (.count rdd))
+
+
+(defn first
+  "Find the first element of `rdd`.
+
+  This is an action that causes computation."
+  [^JavaRDD rdd]
+  (.first rdd))
+
 
 (defn min
   "Find the minimum element in `rdd` in the ordering defined by `compare-fn`.
@@ -544,6 +640,33 @@
    (max compare rdd))
   ([compare-fn ^JavaRDD rdd]
    (.max rdd (f/comparator-fn compare-fn))))
+
+
+(defn take
+  "Take the first `n` elements of the RDD.
+
+  This currently scans the partitions _one by one_ on the **driver**, so it
+  will be slow if a lot of elements are required. In that case, use `collect`
+  to get the whole RDD instead.
+
+  This is an action that causes computation."
+  [n ^JavaRDD rdd]
+  (.take rdd (int n)))
+
+
+(defn take-ordered
+  "Take the first `n` (smallest) elements from this RDD as defined by the
+  elements' natural order or specified comparator.
+
+  This currently scans the partitions _one by one_ on the **driver**, so it
+  will be slow if a lot of elements are required. In that case, use `collect`
+  to get the whole RDD instead.
+
+  This is an action that causes computation."
+  ([n ^JavaRDD rdd]
+   (.takeOrdered rdd (int n)))
+  ([n compare-fn ^JavaRDD rdd]
+   (.takeOrdered rdd (int n) (f/comparator-fn compare-fn))))
 
 
 (defn reduce
@@ -577,7 +700,93 @@
 
 
 
+;; ## Pair RDD Actions
+
+(defn lookup
+  "Find all values in the `rdd` pairs whose keys is `k`. The key must be
+  serializable with the Java serializer (not Kryo) for this to work.
+
+  This is an action that causes computation."
+  [^JavaPairRDD rdd k]
+  (vec (.lookup rdd k)))
+
+
+(defn count-by-key
+  "Count the distinct key values in `rdd`. Returns a map of keys to integer
+  counts.
+
+  This is an action that causes computation."
+  [^JavaPairRDD rdd]
+  (into {} (.countByKey rdd)))
+
+
+(defn count-by-value
+  "Count the distinct values in `rdd`. Returns a map of values to integer
+  counts.
+
+  This is an action that causes computation."
+  [^JavaPairRDD rdd]
+  (into {} (.countByValue rdd)))
+
+
+
 ;; ## RDD Partitioning
+
+;; TODO: move these into sparkplug.rdd ?
+
+(defn hash-partitioner
+  "Construct a partitioner which will hash keys to distribute them uniformly
+  over `n` buckets. Optionally accepts a `key-fn` which will be called on each
+  key before hashing it."
+  ^HashPartitioner
+  ([n]
+   (HashPartitioner. n))
+  ^HashPartitioner
+  ([key-fn n]
+   (proxy [HashPartitioner] [n]
+     (getPartition
+       [k]
+       (let [k' (key-fn k)]
+         (mod (hash k') n))))))
+
+
+(defn partitioner
+  "Return the partitioner associated with `rdd`, or nil if there is no custom
+  partitioner."
+  [^JavaPairRDD rdd]
+  (let [opt-part (.partitioner (.rdd rdd))]
+    (when (instance? scala.Some opt-part)
+      (.get ^scala.Some opt-part))))
+
+
+(defn partitions
+  "Return a vector of the partitions in `rdd`."
+  [^JavaRDD rdd]
+  (into [] (.partitions (.rdd rdd))))
+
+
+(defn partition-by
+  "Return a copy of `rdd` partitioned by the given `partitioner`."
+  [^Partitioner partitioner ^JavaPairRDD rdd]
+  (rdd/set-callsite-name
+    (.partitionBy rdd partitioner)
+    (.getName (class partitioner))))
+
+
+(defn repartition
+  "Returns a new `rdd` with exactly `n` partitions.
+
+  This method can increase or decrease the level of parallelism in this RDD.
+  Internally, this uses a shuffle to redistribute data.
+
+  If you are decreasing the number of partitions in this RDD, consider using
+  `coalesce`, which can avoid performing a shuffle."
+  ^JavaRDD
+  [n ^JavaRDD rdd]
+  (rdd/set-callsite-name
+    (.repartition rdd (int n))
+    (int n)))
+
 
 (defn coalesce
   "Decrease the number of partitions in `rdd` to `n`. Useful for running
@@ -590,16 +799,3 @@
      (.coalesce rdd (int n) (boolean shuffle?))
      (int n)
      (boolean shuffle?))))
-
-
-
-;; ## RDD Actions
-
-(defn foreach
-  "Apply the function `f` to all elements of `rdd`. The function will execute
-  on the executors where the data resides.
-
-  Consider `foreach-partition` for efficiency if handling an element requires
-  costly resource acquisition such as a database connection."
-  [f ^JavaRDD rdd]
-  (.foreach rdd (f/void-fn f)))

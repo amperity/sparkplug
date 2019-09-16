@@ -77,11 +77,24 @@
      min-partitions)))
 
 
+(defn binary-files
+  "Read a directory of binary files from the given URL as a pair RDD of paths
+  to byte streams."
+  ^JavaPairRDD
+  ([^JavaSparkContext spark-context path]
+   (.binaryFiles spark-context path))
+  ^JavaPairRDD
+  ([^JavaSparkContext spark-context path num-partitions]
+   (.binaryFiles spark-context path (int num-partitions))))
+
+
 (defn text-file
   "Read a text file from a URL into an RDD of the lines in the file. Optionally
   accepts a number of partitions to slice the file into."
+  ^JavaRDD
   ([^JavaSparkContext spark-context filename]
    (.textFile spark-context filename))
+  ^JavaRDD
   ([^JavaSparkContext spark-context min-partitions filename]
    (.textFile spark-context filename min-partitions)))
 
@@ -89,8 +102,10 @@
 (defn whole-text-files
   "Read a directory of text files from a URL into an RDD. Each element of the
   RDD is a pair of the file path and the full contents of the file."
+  ^JavaPairRDD
   ([^JavaSparkContext spark-context filename]
    (.wholeTextFiles spark-context filename))
+  ^JavaPairRDD
   ([^JavaSparkContext spark-context min-partitions filename]
    (.wholeTextFiles spark-context filename min-partitions)))
 

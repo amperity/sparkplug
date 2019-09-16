@@ -37,9 +37,6 @@ jobs:
             - v1-test-{{ checksum "project.clj" }}
             - v1-test-
       - run:
-          name: Pull dependencies
-          command: lein deps
-      - run:
           name: Test projects
           command: lein monolith each do clean, check, install
       - save_cache:

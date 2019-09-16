@@ -23,7 +23,7 @@
 (defn set-job-description!
   "Set a human readable description of the current job."
   [^JavaSparkContext spark-context description]
-  (.setJobDescription spark-context description ))
+  (.setJobDescription spark-context description))
 
 
 (defn set-job-group!

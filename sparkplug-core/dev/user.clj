@@ -7,4 +7,5 @@
     [clojure.tools.namespace.repl :refer [refresh]]
     [sparkplug.core :as spark]
     [sparkplug.function :as f]
-    [sparkplug.rdd :as rdd]))
+    [sparkplug.rdd :as rdd]
+    [sparkplug.scala :as scala]))

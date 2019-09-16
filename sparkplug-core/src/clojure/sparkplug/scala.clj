@@ -110,21 +110,27 @@
              (str "Cannot coerce " (class v) " value to a vector")))))
 
 
-(defn from-pair
-  "Coerce a Scala pair (`Tuple2`) value to a Clojure value. Returns map entry
-  values for efficiency. Recursively walks the structure to ensure all nested
-  values are Clojure-compatible."
-  [^Tuple2 pair]
+(defn from-tuple
+  "Coerce a Scala tuple value to a Clojure vector. Recursively walks the
+  structure to ensure all nested tuples are converted."
+  [t]
   (letfn [(coerce-product
             [x]
             (if (instance? Product x)
               (tuple->vec x)
               x))]
-    (MapEntry.
-      (walk/prewalk coerce-product (._1 pair))
-      (walk/prewalk coerce-product (._2 pair)))))
+    (walk/prewalk coerce-product t)))
 
 
+(defn from-pair
+  "Coerce a Scala pair (`Tuple2`) value to a Clojure value. Returns map entry
+  values for efficiency. Recursively walks the structure to ensure all nested
+  values are Clojure-compatible."
+  [^Tuple2 pair]
+  (MapEntry. (from-tuple (._1 pair)) (from-tuple (._2 pair))))
+
+
+;; TODO: is this needed?
 (defn to-pair
   "Coerce a Clojure value to a Scala pair (`Tuple2`)."
   ^Tuple2

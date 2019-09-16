@@ -5,6 +5,7 @@
   just like Clojure collection functions. This lets you compose them using the
   thread-last macro (`->>`), making it simple to migrate existing Clojure
   code."
+  (:refer-clojure :exclude [name])
   (:require
     [clojure.string :as str]
     [sparkplug.name :as name])
@@ -16,25 +17,22 @@
       StorageLevels)))
 
 
-(def storage-levels
-  "Keyword mappings for available RDD storage levels."
-  {:memory-only           StorageLevels/MEMORY_ONLY
-   :memory-only-ser       StorageLevels/MEMORY_ONLY_SER
-   :memory-and-disk       StorageLevels/MEMORY_AND_DISK
-   :memory-and-disk-ser   StorageLevels/MEMORY_AND_DISK_SER
-   :disk-only             StorageLevels/DISK_ONLY
-   :memory-only-2         StorageLevels/MEMORY_ONLY_2
-   :memory-only-ser-2     StorageLevels/MEMORY_ONLY_SER_2
-   :memory-and-disk-2     StorageLevels/MEMORY_AND_DISK_2
-   :memory-and-disk-ser-2 StorageLevels/MEMORY_AND_DISK_SER_2
-   :disk-only-2           StorageLevels/DISK_ONLY_2
-   :none                  StorageLevels/NONE})
+;; ## RDD Naming
+
+(defn name
+  "Return the current name for `rdd`."
+  [^JavaRDD rdd]
+  (.name rdd))
 
 
+(defn set-name
+  "Set the name of `rdd` to `name-str`."
+  ^JavaRDD
+  [name-str ^JavaRDD rdd]
+  (.setName rdd name-str))
 
-;; ## RDD Construction
 
-(defn set-callsite-name
+(defn ^:no-doc set-callsite-name
   "Provide a name for the given RDD by looking at the current stack. Returns
   the updated RDD if the name could be determined."
   ^JavaRDD
@@ -51,6 +49,9 @@
       ;; Ignore errors and return an unnamed RDD.
       rdd)))
 
+
+
+;; ## RDD Construction
 
 (defn parallelize
   "Distribute a local collection to form an RDD. Optionally accepts a number
@@ -92,3 +93,58 @@
    (.wholeTextFiles spark-context filename))
   ([^JavaSparkContext spark-context min-partitions filename]
    (.wholeTextFiles spark-context filename min-partitions)))
+
+
+(defn save-as-text-file
+  "Write the elements of `rdd` as a text file (or set of text files) in a given
+  directory `path` in the local filesystem, HDFS or any other Hadoop-supported
+  file system. Spark will call toString on each element to convert it to a line
+  of text in the file."
+  [path ^JavaRDD rdd]
+  (.saveAsTextFile rdd (str path)))
+
+
+
+;; ## Storage Management
+
+(def storage-levels
+  "Keyword mappings for available RDD storage levels."
+  {:memory-only           StorageLevels/MEMORY_ONLY
+   :memory-only-ser       StorageLevels/MEMORY_ONLY_SER
+   :memory-and-disk       StorageLevels/MEMORY_AND_DISK
+   :memory-and-disk-ser   StorageLevels/MEMORY_AND_DISK_SER
+   :disk-only             StorageLevels/DISK_ONLY
+   :memory-only-2         StorageLevels/MEMORY_ONLY_2
+   :memory-only-ser-2     StorageLevels/MEMORY_ONLY_SER_2
+   :memory-and-disk-2     StorageLevels/MEMORY_AND_DISK_2
+   :memory-and-disk-ser-2 StorageLevels/MEMORY_AND_DISK_SER_2
+   :disk-only-2           StorageLevels/DISK_ONLY_2
+   :none                  StorageLevels/NONE})
+
+
+(defn cache!
+  "Sets the storage level of `rdd` to persist its values across operations
+  after the first time it is computed. By default, this uses the `:memory-only`
+  level, but an alternate may be specified by `level`.
+
+  This can only be used to assign a new storage level if the RDD does not have
+  a storage level set already."
+  ^JavaRDD
+  ([^JavaRDD rdd]
+   (.cache rdd))
+  ^JavaRDD
+  ([level ^JavaRDD rdd]
+   {:pre [(contains? storage-levels level)]}
+   (.persist rdd (get storage-levels level))))
+
+
+(defn uncache!
+  "Mark `rdd` as non-persistent, and remove all blocks for it from memory and
+  disk. Blocks until all data has been removed unless `blocking?` is provided
+  and false."
+  ^JavaRDD
+  ([^JavaRDD rdd]
+   (.unpersist rdd))
+  ^JavaRDD
+  ([blocking? ^JavaRDD rdd]
+   (.unpersist rdd (boolean blocking?))))

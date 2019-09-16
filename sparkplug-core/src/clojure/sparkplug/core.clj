@@ -185,7 +185,7 @@
      (boolean preserve-partitioning?))))
 
 
-(defn map-values
+(defn map-vals
   "Map the function `f` over each value of the pairs in `rdd`. Returns a new
   pair RDD representing the transformed pairs."
   ^JavaPairRDD
@@ -195,7 +195,7 @@
     (rdd/fn-name f)))
 
 
-(defn mapcat-values
+(defn mapcat-vals
   "Map the function `f` over each value of the pairs in `rdd` to produce a
   collection of values. Returns a new pair RDD representing the concatenated
   keys and values."
@@ -574,16 +574,18 @@
 (defn into
   "Collect the elements of `rdd` into a collection on the driver. Behaves like
   `clojure.core/into`, including accepting an optional transducer.
+  Automatically coerces Scala tuples into Clojure vectors.
 
   Be careful not to realize large datasets with this, as the driver will likely
   run out of memory.
 
   This is an action that causes computation."
-  ;; TODO: auto-coerce Tuple2 to MapEntry?
   ([coll ^JavaRDD rdd]
-   (c/into coll (.collect rdd)))
+   (into coll identity rdd))
   ([coll xf ^JavaRDD rdd]
-   (c/into coll xf (.collect rdd))))
+   (c/into coll
+           (comp (map scala/from-tuple) xf)
+           (.collect rdd))))
 
 
 (defn foreach

@@ -267,6 +267,18 @@
    :none                  StorageLevels/NONE})
 
 
+(defn storage-level
+  "Return the keyword representing the storage level in the `storage-levels`
+  map, or the raw value if not found."
+  [^JavaRDD rdd]
+  (let [level (.getStorageLevel rdd)]
+    (or (->> storage-levels
+             (filter #(= level (val %)))
+             (map key)
+             (first))
+        level)))
+
+
 (defn cache!
   "Sets the storage level of `rdd` to persist its values across operations
   after the first time it is computed. By default, this uses the `:memory-only`
@@ -293,3 +305,21 @@
   ^JavaRDD
   ([blocking? ^JavaRDD rdd]
    (.unpersist rdd (boolean blocking?))))
+
+
+(defn checkpointed?
+  "True if `rdd` has been marked for checkpointing."
+  [^JavaRDD rdd]
+  (.isCheckpointed rdd))
+
+
+(defn checkpoint!
+  "Mark `rdd` for checkpointing. It will be saved to a file inside the
+  checkpoint directory set on the Spark context and all references to its
+  parent RDDs will be removed.
+
+  This function must be called before any job has been executed on this RDD. It
+  is strongly recommended that this RDD is persisted in memory, otherwise
+  saving it to a file will require recomputation."
+  [^JavaRDD rdd]
+  (.checkpoint rdd))

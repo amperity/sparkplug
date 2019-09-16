@@ -5,6 +5,9 @@ Clojure Spark API
 
 SparkPlug is a Clojure API for [Apache Spark](http://spark.apache.org/).
 
+**WARNING:** This project is still under active development and is not ready to
+be used yet!
+
 
 ## Installation
 

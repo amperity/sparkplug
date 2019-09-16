@@ -72,7 +72,7 @@
    (merge-params conf (apply array-map k v kvs))))
 
 
-(defn set-default-param
+(defn set-param-default
   "Set a parameter to a new value if it is not already set in the config.
   Returns an updated configuration."
   ^SparkConf
@@ -97,7 +97,8 @@
 
 (defn set-executor-env
   "Set environment variables to be used when launching executors for this
-  application. Returns an updated configuration."
+  application. Accepts a parameter key and value or a map of parameters.
+  Returns an updated configuration."
   ^SparkConf
   ([^SparkConf conf k v]
    (.setExecutorEnv conf k v))
@@ -114,11 +115,8 @@
 (defn master
   "Set the Spark master property. Returns updated configuration."
   ^SparkConf
-  ([^SparkConf conf]
-   (.setMaster conf "local[*]"))
-  ^SparkConf
-  ([^SparkConf conf ^String master]
-   (.setMaster conf master)))
+  [^SparkConf conf ^String master]
+  (.setMaster conf master))
 
 
 (defn spark-home

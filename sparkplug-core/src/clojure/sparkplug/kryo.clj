@@ -37,6 +37,8 @@
       JarFile)))
 
 
+;; ## Registry Files
+
 (def ^:const registry-prefix
   "SparkPlug registry files must be available under this directory path."
   "sparkplug/kryo/registry")
@@ -46,9 +48,6 @@
   "SparkPlug registry file extension."
   ".conf")
 
-
-
-;; ## Registry Search
 
 (defn- registry-path?
   "True if the given path is a valid registry file name."
@@ -114,22 +113,6 @@
           (mapcat find-jar-entries (classpath/classpath-jarfiles))))
 
 
-(defn- classpath-registries
-  "Return a sequence of registry file maps from the classpath. Returns a sorted
-  sequence with a single entry per distinct config name. Files earlier on the
-  classpath will take precedence."
-  []
-  (->>
-    (find-classpath-files)
-    (map (juxt :name identity))
-    (reverse)
-    (into (sorted-map))
-    (vals)))
-
-
-
-;; ## Registry Files
-
 (defn- parse-registry-line
   "Parse a line from a registry file. Returns a map of information with the
   given line number as `:line`, an action `:type` keyword, and any remaining
@@ -143,6 +126,37 @@
        :type (keyword action-type)
        :args (vec args)})))
 
+
+(defn- parse-registry-actions
+  "Parse the text content of the given registry data map. Returns an updated map
+  with `:text` removed and `:actions` set to the parsed lines."
+  [registry]
+  (let [actions (->>
+                  (:text registry)
+                  (str/split-lines)
+                  (map-indexed parse-registry-line)
+                  (remove nil?)
+                  (vec))]
+    (-> registry
+        (assoc :actions actions)
+        (dissoc :text))))
+
+
+(defn classpath-registries
+  "Return a sequence of registry file maps from the classpath. Returns a sorted
+  sequence with a single entry per distinct config name. Files earlier on the
+  classpath will take precedence."
+  []
+  (->>
+    (find-classpath-files)
+    (map (juxt :name parse-registry-actions))
+    (reverse)
+    (into (sorted-map))
+    (vals)))
+
+
+
+;; ## Registry Actions
 
 (defn- run-require-action!
   "Perform a `require` action from a registry config."
@@ -260,21 +274,14 @@
                           cause)))))))
 
 
-(defn- load-registry!
+(defn load-registry!
   "Process the given registry file map and enact the contained actions."
   [kryo registry]
   (log/debugf "Loading registry %s in %s" (:name registry) (:path registry))
-  (->>
-    (:text registry)
-    (str/split-lines)
-    (map-indexed parse-registry-line)
-    (run! (partial run-action! kryo registry))))
+  (run! (partial run-action! kryo registry) (:actions registry)))
 
-
-
-;; ## Configuration Hook
 
 (defn configure!
   "Configure the given Kryo instance by loading registries from the classpath."
-  [^Kryo kryo]
+  [kryo]
   (run! (partial load-registry! kryo) (classpath-registries)))

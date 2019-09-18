@@ -133,10 +133,132 @@
 
 
 
+;; ## Registry Files
+
+(defn- parse-registry-line
+  "Parse a line from a registry file. Returns a map of information with the
+  given line number as `:line`, an action `:type` keyword, and any remaining
+  `:args` as a sequence of strings. Returns nil if the line is blank or a
+  comment."
+  [line-number line]
+  (when-not (or (str/blank? line)
+                (str/starts-with? line "#"))
+    (let [[action-type & args] (str/split line #"\t")]
+      {:line line-number
+       :type (keyword action-type)
+       :args (vec args)})))
+
+
+(defn- run-require-action!
+  "Perform a `require` action from a registry config."
+  [args]
+  (when-not (= 1 (count args))
+    (throw (ex-info (str "require action takes exactly one argument, not "
+                         (count args))
+                    {:type ::bad-action})))
+  (when (str/includes? (first args) "/")
+    (throw (ex-info "require action argument should not be namespaced"
+                    {:type ::bad-action})))
+  (let [ns-sym (symbol (first args))]
+    (log/debug "Requiring namespace" ns-sym)
+    (require ns-sym)))
+
+
+(defn- run-register-action!
+  "Perform a `register` action from a registry config."
+  [^Kryo kryo args]
+  (when-not (<= 1 (count args) 2)
+    (throw (ex-info (str "register action takes one or two arguments, not "
+                         (count args))
+                    {:type ::bad-action})))
+  (when (and (second args) (not (str/includes? (second args) "/")))
+    (throw (ex-info "register action serializer should be a namespaced symbol"
+                    {:type ::bad-action})))
+  (let [[class-name serializer-name] args]
+    (log/debugf "Registering class %s with %s serializer"
+                class-name
+                (or serializer-name "default"))
+    ;; Load the class to register.
+    (let [clazz (Class/forName class-name)]
+      (if serializer-name
+        ;; Resolve the named function to construct a new serializer instance.
+        (if-let [constructor (requiring-resolve (symbol serializer-name))]
+          (.register kryo clazz (constructor))
+          (throw (ex-info (str "Could not resolve serializer constructor function "
+                               serializer-name)
+                          {:type ::bad-action})))
+        ;; No serializer, register with defaults.
+        (.register kryo clazz)))))
+
+
+(defn- run-configure-action!
+  "Perform a `configure` action from a registry config."
+  [^Kryo kryo args]
+  (when-not (= 1 (count args)))
+    (throw (ex-info (str "configure action takes exactly one argument, not "
+                         (count args))
+                    {:type ::bad-action}))
+  (when-not (str/includes? (first args) "/")
+    (throw (ex-info "configure action function should be a namespaced symbol"
+                    {:type ::bad-action})))
+  (let [var-name (symbol (first args))]
+    (log/debug "Configuring Kryo with function" var-name)
+    (if-let [configure (requiring-resolve var-name)]
+      (configure kryo)
+      (throw (ex-info (str "Could not resolve configuration function "
+                           var-name)
+                      {:type ::bad-action})))))
+
+
+(defn- run-action!
+  "Take the configuration `action` as read from the given `registry`.
+  Dispatches by action type."
+  [kryo registry action]
+  (let [{:keys [path name text]} registry
+        {:keys [line type args]} action]
+    (try
+      (case type
+        :require
+        (run-require-action! args)
+
+        :register
+        (run-register-action! kryo args)
+
+        :configure
+        (run-configure-action! kryo args)
+
+        (throw (ex-info (str "Unsupported registry action " (pr-str type))
+                        {:type ::bad-action})))
+      (catch Exception ex
+        (let [message (format "Failed to perform %s action on line %s of %s in %s"
+                              (name type) line name path)
+              cause (when (not= ::bad-action (:type (ex-data ex)))
+                      ex)]
+          (log/error message (.getMessage ex))
+          (throw (ex-info (str message ": " (.getMessage ex))
+                          {:path path
+                           :name name
+                           :line line
+                           :type type
+                           :args args}
+                          cause)))))))
+
+
+(defn- load-registry!
+  "Process the given registry file map and enact the contained actions."
+  [kryo registry]
+  (log/debugf "Loading registry %s in %s" (:name registry) (:path registry))
+  (->>
+    (:content registry)
+    (str/split-lines)
+    (map-indexed parse-registry-line)
+    (run! (partial run-action! kryo registry))))
+
+
+
 ;; ## Configuration Hook
 
 (defn configure!
   "Configure the given Kryo instance by loading registries from the classpath."
   [^Kryo kryo]
-  ;; TODO: implement
-  nil)
+  (run! (partial load-registry! kryo) (classpath-registries)))

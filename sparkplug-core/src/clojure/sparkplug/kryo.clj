@@ -27,11 +27,28 @@
     [clojure.string :as str]
     [clojure.tools.logging :as log])
   (:import
+    (clojure.lang
+      BigInt
+      IPersistentMap
+      IPersistentSet
+      IPersistentVector
+      ISeq
+      Keyword
+      Named
+      PersistentTreeMap
+      PersistentTreeSet
+      Ratio
+      StringSeq
+      Symbol
+      Var)
     (com.esotericsoftware.kryo
       Kryo
-      KryoSerializable
       Serializer)
+    (com.esotericsoftware.kryo.io
+      Input
+      Output)
     java.io.File
+    java.math.BigInteger
     (java.util.jar
       JarEntry
       JarFile)))
@@ -285,3 +302,250 @@
   "Configure the given Kryo instance by loading registries from the classpath."
   [kryo]
   (run! (partial load-registry! kryo) (classpath-registries)))
+
+
+
+;; ## Serialization Logic
+
+;; For types that are already registered with efficient serializers, see:
+;; https://github.com/EsotericSoftware/kryo/blob/master/src/com/esotericsoftware/kryo/Kryo.java
+;; https://github.com/twitter/chill/blob/v0.9.3/chill-java/src/main/java/com/twitter/chill/java/PackageRegistrar.java
+;; https://github.com/twitter/chill/blob/v0.9.3/chill-scala/src/main/scala/com/twitter/chill/ScalaKryoInstantiator.scala
+
+
+(defmacro defserializer
+  "Define a new constructor for a Kryo Serializer with the given `write` and
+  `read` method implementations."
+  [name-sym class-sym immutable? & body]
+  ;; TODO: a spec for this macro would be better than these assertions
+  {:pre [(symbol? name-sym)
+         (symbol? class-sym)
+         (boolean? immutable?)
+         (= 2 (count body))
+         (every? list? body)
+         (= #{'read 'write} (set (map first body)))]}
+  (let [tagged #(vary-meta %1 assoc :tag %2)
+        name-sym (tagged name-sym Serializer)
+        body-methods (into {} (map (juxt first identity)) body)
+        write-form (get body-methods 'write)
+        read-form (get body-methods 'read)]
+    ^:cljfmt/ignore
+    `(defn ~name-sym
+       ~(str "Construct a new Kryo serializer for " class-sym " values.")
+       []
+       (proxy [Serializer] [false ~immutable?]
+
+         (write
+           ~(let [[kryo-sym output-sym value-sym] (second write-form)]
+              [(tagged kryo-sym Kryo)
+               (tagged output-sym Output)
+               (tagged value-sym class-sym)])
+           ~@(nnext write-form))
+
+         (read
+           ~(let [[kryo-sym input-sym target-sym] (second read-form)]
+              [(tagged kryo-sym Kryo)
+               (tagged input-sym Input)
+               (tagged target-sym Class)])
+           ~@(nnext read-form))))))
+
+
+;; ### Core Serializers
+
+(defserializer ident-serializer
+  Named true
+
+  (write
+    [kryo output value]
+    (let [named-str (if (keyword? value)
+                      (subs (str value) 1)
+                      (str value))]
+      (.writeString output named-str)))
+
+  (read
+    [kryo input target-class]
+    (let [named-str (.readString input)]
+      (if (identical? Keyword target-class)
+        (keyword named-str)
+        (symbol named-str)))))
+
+
+(defn- write-biginteger
+  "Write a BigInteger to the Kryo output."
+  [^Output output ^BigInteger value]
+  (let [int-bytes (.toByteArray value)]
+    (.writeVarInt (alength int-bytes) true)
+    (.write output int-bytes)))
+
+
+(defn- read-biginteger
+  "Read a BigInteger value from the Kryo input."
+  [^Input input]
+  (let [length (.readVarInt input true)
+        int-bytes (.readBytes input length)]
+    (BigInteger. int-bytes)))
+
+
+(defserializer bigint-serializer
+  BigInt true
+
+  (write
+    [kryo output value]
+    (write-biginteger output (biginteger value)))
+
+  (read
+    [kryo input _]
+    (bigint (read-biginteger input))))
+
+
+(defserializer ratio-serializer
+  Ratio true
+
+  (write
+    [kryo output value]
+    (write-biginteger output (numerator value))
+    (write-biginteger output (denominator value)))
+
+  (read
+    [kryo input _]
+    (/ (read-biginteger input)
+       (read-biginteger input))))
+
+
+(defserializer var-serializer
+  Var false
+
+  (write
+    [kryo output value]
+    (.writeString output (str (symbol value))))
+
+  (read
+    [kryo input _]
+    (let [var-sym (symbol (.readString input))]
+      (requiring-resolve var-sym))))
+
+
+;; ### Sequence Serializers
+
+(defn- write-sequence
+  "Write a sequence of values to the Kryo output."
+  [^Kryo kryo ^Output output coll]
+  (.writeVarInt output (count coll) true)
+  (doseq [x coll]
+    (.writeClassAndObject kryo output x)))
+
+
+(defn- read-sequence
+  "Read a lazy sequence of values from the Kryo output."
+  [^Kryo kryo ^Input input]
+  (let [length (.readVarInt input true)]
+    (repeatedly length #(.readClassAndObject kryo input))))
+
+
+(defserializer sequence-serializer
+  ISeq true
+
+  (write
+    [kryo output coll]
+    (write-sequence kryo output coll))
+
+  (read
+    [kryo input _]
+    (apply list (read-sequence kryo input))))
+
+
+(defserializer vector-serializer
+  IPersistentVector true
+
+  (write
+    [kryo output coll]
+    (write-sequence kryo output coll))
+
+  (read
+    [kryo input _]
+    (into [] (read-sequence kryo input))))
+
+
+(defserializer string-seq-serializer
+  StringSeq true
+
+  (write
+    [kryo output coll]
+    (.writeString output (str/join coll)))
+
+  (read
+    [kryo input _]
+    (seq (.readString input))))
+
+
+;; ### Set Serializers
+
+(defserializer set-serializer
+  IPersistentSet true
+
+  (write
+    [kryo output coll]
+    (write-sequence kryo output coll))
+
+  (read
+    [kryo input _]
+    (into #{} (read-sequence kryo input))))
+
+
+(defserializer ordered-set-serializer
+  PersistentTreeSet true
+
+  (write
+    [kryo output coll]
+    (.writeClassAndObject kryo output (.comparator coll))
+    (write-sequence kryo output coll))
+
+  (read
+    [kryo input _]
+    (let [cmp (.readClassAndObject kryo input)]
+      (into (sorted-set-by cmp) (read-sequence kryo input)))))
+
+
+;; ### Map Serializers
+
+(defn- write-kvs
+  "Write a sequence of key/value pairs to the Kryo output."
+  [^Kryo kryo ^Output output coll]
+  (.writeVarInt output (count coll) true)
+  (doseq [x coll]
+    (.writeClassAndObject kryo output x)))
+
+
+(defn- read-kvs
+  "Read a lazy sequence of key/value pairs from the Kryo output."
+  [^Kryo kryo ^Input input]
+  (let [length (.readVarInt input true)]
+    (repeatedly length #(clojure.lang.MapEntry.
+                          (.readClassAndObject kryo input)
+                          (.readClassAndObject kryo input)))))
+
+
+(defserializer map-serializer
+  IPersistentMap true
+
+  (write
+    [kryo output coll]
+    (write-kvs kryo output coll))
+
+  (read
+    [kryo input _]
+    (into {} (read-kvs kryo input))))
+
+
+(defserializer ordered-map-serializer
+  PersistentTreeMap true
+
+  (write
+    [kryo output coll]
+    (.writeClassAndObject kryo output (.comparator coll))
+    (write-kvs kryo output coll))
+
+  (read
+    [kryo input _]
+    (let [cmp (.readClassAndObject kryo input)]
+      (into (sorted-set-by cmp) (read-kvs kryo input)))))

@@ -9,6 +9,7 @@
 
   :dependencies
   [[org.clojure/clojure "1.10.1"]
+   [org.clojure/java.classpath "0.3.0"]
    [org.clojure/tools.logging "0.5.0"]
    [clj-time "0.15.2"]
    [com.twitter/carbonite "1.5.0"

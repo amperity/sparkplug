@@ -9,23 +9,18 @@
   - `require        {{namespace}}`
     Require a namespace to load code or for other side effects.
   - `register       {{class}}`
-    Register the named class with default serialization.
-  - `register       {{class}}     {{serializer-fn}}`
-    Register the named class with the given serializer. The named function will
-    be resolved and called with no arguments to return a `Serializer` instance.
+    Register the named class with default serialization. The class name may be
+    suffixed with `[]` pairs to indicate array class types.
+  - `register       {{class}}     {{serializer}}`
+    Register the named class with the given serializer. The serializer may
+    either be the name of a class to instantiate with the default constructor,
+    or a qualified function var be resolved and called with no arguments to
+    return a `Serializer` instance.
   - `configure      {{config-fn}}`
     Resolve the named function and call it on the Kryo instance to directly
     configure it.
 
-  Blank lines or lines beginning with a hash (#) are ignored.
-
-  For types which are supported out of the box, the following links may be helpful:
-  https://github.com/apache/spark/blob/v2.4.4/core/src/main/scala/org/apache/spark/serializer/KryoSerializer.scala
-  https://github.com/twitter/chill/blob/v0.9.3/chill-java/src/main/java/com/twitter/chill/java/PackageRegistrar.java
-  https://github.com/twitter/chill/blob/v0.9.3/chill-scala/src/main/scala/com/twitter/chill/ScalaKryoInstantiator.scala#L196
-
-  For general Kryo info:
-  https://github.com/EsotericSoftware/kryo"
+  Blank lines or lines beginning with a hash (#) are ignored."
   (:require
     [clojure.java.classpath :as classpath]
     [clojure.java.io :as io]
@@ -164,6 +159,22 @@
     (require ns-sym)))
 
 
+(defn- convert-array-class
+  "Determine the base class and number of nested arrays for a class name like
+  `String[][]`. Returns a rewritten string in a form that the classloader will
+  understand like `[[LString;`."
+  [class-name]
+  (loop [class-name class-name
+         arrays 0]
+    (if (str/ends-with? class-name "[]")
+      (recur (subs class-name (- (count class-name) 2))
+             (inc arrays))
+      (if (zero? arrays)
+        class-name
+        (str (str/join (repeat arrays \[))
+             "L" class-name ";")))))
+
+
 (defn- run-register-action!
   "Perform a `register` action from a registry config."
   [^Kryo kryo args]
@@ -179,16 +190,21 @@
                 class-name
                 (or serializer-name "default"))
     ;; Load the class to register.
-    (let [clazz (Class/forName class-name)]
+    (let [target-class (Class/forName (convert-array-class class-name))]
       (if serializer-name
-        ;; Resolve the named function to construct a new serializer instance.
-        (if-let [constructor (requiring-resolve (symbol serializer-name))]
-          (.register kryo clazz (constructor))
-          (throw (ex-info (str "Could not resolve serializer constructor function "
-                               serializer-name)
-                          {:type ::bad-action})))
+        (if (str/includes? serializer-name "/")
+          ;; Resolve the named function to construct a new serializer instance.
+          (if-let [constructor (requiring-resolve (symbol serializer-name))]
+            (.register kryo target-class (constructor))
+            (throw (ex-info (str "Could not resolve serializer constructor function "
+                                 serializer-name)
+                            {:type ::bad-action})))
+          ;; Assume the serializer is a class name and construct an instance.
+          (let [serializer-class (Class/forName serializer-name)
+                serializer (.newInstance serializer-class)]
+            (.register kryo target-class serializer)))
         ;; No serializer, register with defaults.
-        (.register kryo clazz)))))
+        (.register kryo target-class)))))
 
 
 (defn- run-configure-action!
@@ -249,7 +265,7 @@
   [kryo registry]
   (log/debugf "Loading registry %s in %s" (:name registry) (:path registry))
   (->>
-    (:content registry)
+    (:text registry)
     (str/split-lines)
     (map-indexed parse-registry-line)
     (run! (partial run-action! kryo registry))))

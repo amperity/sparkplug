@@ -584,7 +584,7 @@
    (into coll identity rdd))
   ([coll xf ^JavaRDD rdd]
    (c/into coll
-           (comp (map scala/from-tuple) xf)
+           (comp (c/map scala/from-tuple) xf)
            (.collect rdd))))
 
 

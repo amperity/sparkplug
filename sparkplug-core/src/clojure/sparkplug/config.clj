@@ -16,7 +16,7 @@
   ([defaults?]
    (-> (SparkConf. (boolean defaults?))
        (.set "spark.serializer" "org.apache.spark.serializer.KryoSerializer")
-       (.set "spark.kryo.registrator" "sparkplug.kryo.Registrator"))))
+       (.set "spark.kryo.registrator" "sparkplug.kryo.ClassPathRegistrator"))))
 
 
 

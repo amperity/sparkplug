@@ -198,7 +198,7 @@
   (loop [class-name class-name
          arrays 0]
     (if (str/ends-with? class-name "[]")
-      (recur (subs class-name (- (count class-name) 2))
+      (recur (subs class-name 0 (- (count class-name) 2))
              (inc arrays))
       (if (zero? arrays)
         class-name

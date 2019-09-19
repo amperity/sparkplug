@@ -51,7 +51,8 @@
     java.math.BigInteger
     (java.util.jar
       JarEntry
-      JarFile)))
+      JarFile)
+    org.objenesis.strategy.StdInstantiatorStrategy))
 
 
 ;; ## Registry Files
@@ -301,6 +302,7 @@
 (defn configure!
   "Configure the given Kryo instance by loading registries from the classpath."
   [kryo]
+  (.setInstantiatorStrategy kryo (StdInstantiatorStrategy.))
   (run! (partial load-registry! kryo) (classpath-registries)))
 
 
@@ -311,7 +313,6 @@
 ;; https://github.com/EsotericSoftware/kryo/blob/master/src/com/esotericsoftware/kryo/Kryo.java
 ;; https://github.com/twitter/chill/blob/v0.9.3/chill-java/src/main/java/com/twitter/chill/java/PackageRegistrar.java
 ;; https://github.com/twitter/chill/blob/v0.9.3/chill-scala/src/main/scala/com/twitter/chill/ScalaKryoInstantiator.scala
-
 
 (defmacro defserializer
   "Define a new constructor for a Kryo Serializer with the given `write` and

@@ -40,17 +40,14 @@
    :spark-2.2
    ^{:pom-scope :provided}
    {:dependencies
-    [[org.apache.spark/spark-core_2.10 "2.2.3"
-      :exclusions [log4j org.slf4j/slf4j-log4j12]]]}
+    [[org.apache.spark/spark-core_2.10 "2.2.3"]]}
 
    :spark-2.3
    ^{:pom-scope :provided}
    {:dependencies
-    [[org.apache.spark/spark-core_2.11 "2.3.4"
-      :exclusions [log4j org.slf4j/slf4j-log4j12]]]}
+    [[org.apache.spark/spark-core_2.11 "2.3.4"]]}
 
    :spark-2.4
    ^{:pom-scope :provided}
    {:dependencies
-    [[org.apache.spark/spark-core_2.12 "2.4.4"
-      :exclusions [log4j org.slf4j/slf4j-log4j12]]]}})
+    [[org.apache.spark/spark-core_2.12 "2.4.4"]]}})

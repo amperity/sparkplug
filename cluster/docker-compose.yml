@@ -5,8 +5,9 @@ services:
       context: .
       dockerfile: Dockerfile
       args:
+        HADOOP_VERSION: 3.2.0
         SPARK_VERSION: 2.4.4
-        SPARK_VARIANT: hadoop2.7
+        SPARK_VARIANT: without-hadoop-scala-2.12
     command: sbin/start-master.sh
     restart: on-failure
     hostname: master
@@ -35,8 +36,9 @@ services:
       context: .
       dockerfile: Dockerfile
       args:
+        HADOOP_VERSION: 3.2.0
         SPARK_VERSION: 2.4.4
-        SPARK_VARIANT: hadoop2.7
+        SPARK_VARIANT: without-hadoop-scala-2.12
     command: sbin/start-slave.sh spark://master:7077
     restart: on-failure
     hostname: worker-1
@@ -60,5 +62,3 @@ services:
       - 8081:8081
     volumes:
       - ./jars:/mnt/jars
-      # TODO: needed?
-      - ./data:/tmp/data

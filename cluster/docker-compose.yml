@@ -1,0 +1,64 @@
+version: "3"
+services:
+  master:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SPARK_VERSION: 2.4.4
+        SPARK_VARIANT: hadoop2.7
+    command: sbin/start-master.sh
+    restart: on-failure
+    hostname: master
+    environment:
+      SPARK_MASTER_PORT: 7077
+      SPARK_MASTER_WEBUI_PORT: 8080
+    expose:
+      - 6066
+      - 7001
+      - 7002
+      - 7003
+      - 7004
+      - 7005
+      - 7006
+      - 7077
+    ports:
+      - 4040:4040
+      - 6066:6066
+      - 7077:7077
+      - 8080:8080
+    volumes:
+      - ./jars:/mnt/jars
+
+  worker-1:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SPARK_VERSION: 2.4.4
+        SPARK_VARIANT: hadoop2.7
+    command: sbin/start-slave.sh spark://master:7077
+    restart: on-failure
+    hostname: worker-1
+    environment:
+      SPARK_WORKER_PORT: 8881
+      SPARK_WORKER_WEBUI_PORT: 8081
+      SPARK_WORKER_CORES: 2
+      SPARK_WORKER_MEMORY: 2g
+    links:
+      - master
+    depends_on:
+      - master
+    expose:
+      - 7012
+      - 7013
+      - 7014
+      - 7015
+      - 7016
+      - 8881
+    ports:
+      - 8081:8081
+    volumes:
+      - ./jars:/mnt/jars
+      # TODO: needed?
+      - ./data:/tmp/data

@@ -108,7 +108,7 @@
   [^JarFile jar entry-name]
   (when-let [entry (.getEntry jar entry-name)]
     (log/debugf "Reading registry configuration from JAR entry %s!%s"
-               (.getName jar) entry-name)
+                (.getName jar) entry-name)
     {:path (.getName jar)
      :name entry-name
      :text (slurp (.getInputStream jar entry))}))
@@ -226,13 +226,13 @@
         (if (str/includes? serializer-name "/")
           ;; Resolve the named function to construct a new serializer instance.
           (if-let [constructor (requiring-resolve (symbol serializer-name))]
-            (.register kryo target-class (constructor))
+            (.register kryo target-class ^Serializer (constructor))
             (throw (ex-info (str "Could not resolve serializer constructor function "
                                  serializer-name)
                             {:type ::bad-action})))
           ;; Assume the serializer is a class name and construct an instance.
           (let [serializer-class (Class/forName serializer-name)
-                serializer (.newInstance serializer-class)]
+                serializer ^Serializer (.newInstance serializer-class)]
             (.register kryo target-class serializer)))
         ;; No serializer, register with defaults.
         (.register kryo target-class)))))
@@ -241,10 +241,10 @@
 (defn- run-configure-action!
   "Perform a `configure` action from a registry config."
   [^Kryo kryo args]
-  (when-not (= 1 (count args)))
+  (when-not (= 1 (count args))
     (throw (ex-info (str "configure action takes exactly one argument, not "
                          (count args))
-                    {:type ::bad-action}))
+                    {:type ::bad-action})))
   (when-not (str/includes? (first args) "/")
     (throw (ex-info "configure action function should be a namespaced symbol"
                     {:type ::bad-action})))
@@ -324,7 +324,9 @@
          (= 2 (count body))
          (every? list? body)
          (= #{'read 'write} (set (map first body)))]}
-  (let [tagged #(vary-meta %1 assoc :tag %2)
+  (let [tagged #(vary-meta %1 assoc :tag (if (instance? Class %2)
+                                           (.getName ^Class %2)
+                                           (str %2)))
         name-sym (tagged name-sym Serializer)
         body-methods (into {} (map (juxt first identity)) body)
         write-form (get body-methods 'write)
@@ -374,7 +376,7 @@
   "Write a BigInteger to the Kryo output."
   [^Output output ^BigInteger value]
   (let [int-bytes (.toByteArray value)]
-    (.writeVarInt (alength int-bytes) true)
+    (.writeVarInt output (alength int-bytes) true)
     (.write output int-bytes)))
 
 

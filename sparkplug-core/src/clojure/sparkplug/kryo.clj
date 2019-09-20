@@ -306,6 +306,14 @@
   (run! (partial load-registry! kryo) (classpath-registries)))
 
 
+(defn initialize
+  "Creates a new Kryo instance and configures it with `configure!`."
+  ^Kryo
+  []
+  (doto (Kryo.)
+    (configure!)))
+
+
 
 ;; ## Serialization Logic
 
@@ -552,3 +560,25 @@
     [kryo input _]
     (let [cmp (.readClassAndObject kryo input)]
       (into (sorted-set-by cmp) (read-kvs kryo input)))))
+
+
+
+;; ## Serialization Utilities
+
+;; These are handy for tests and repl usage, but aren't actually used directly
+;; by the library.
+
+(defn encode
+  "Serialize the given object into a byte arary using the Kryo codec."
+  ^bytes
+  [^Kryo kryo obj]
+  (let [output (Output. 512 8192)]
+    (.writeClassAndObject kryo output obj)
+    (.toBytes output)))
+
+
+(defn decode
+  "Deserialize the given byte array using the Kryo codec."
+  [^Kryo kryo ^bytes data]
+  (let [input (Input. data)]
+    (.readClassAndObject kryo input)))

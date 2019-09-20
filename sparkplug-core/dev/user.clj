@@ -9,8 +9,11 @@
     [sparkplug.context :as ctx]
     [sparkplug.core :as spark]
     [sparkplug.function :as f]
+    [sparkplug.kryo :as kryo]
     [sparkplug.rdd :as rdd]
-    [sparkplug.scala :as scala]))
+    [sparkplug.scala :as scala])
+  (:import
+    com.esotericsoftware.kryo.Kryo))
 
 
 (def spark-context nil)
@@ -25,10 +28,34 @@
                               (conf/master "local[2]")
                               (conf/app-name "letter-frequencies"))]
      (alter-var-root #'spark-context (constantly ctx))
-     (->>
-       (rdd/text-file ctx (str "file://" path))
-       (spark/map str/lower-case)
-       (spark/mapcat seq)
-       (spark/map->pairs #(vector % 1))
-       (spark/reduce-by-key +)
-       (spark/into {})))))
+     (->
+       (->>
+         (rdd/text-file ctx (str "file://" path))
+         (spark/map str/lower-case)
+         (spark/mapcat seq)
+         (spark/map->pairs #(vector % 1))
+         (spark/reduce-by-key +)
+         (spark/into {}))
+       (as-> result
+         (do (println "Done, press enter to continue...")
+             (read-line)
+             result))))))
+
+
+(def kryo
+  (delay (kryo/initialize)))
+
+
+(defn inspect-bytes
+  [data]
+  (->>
+    (seq data)
+    (map #(let [c (char (if (neg? %)
+                          (+ % 256)
+                          %))]
+            (if (or (Character/isLetterOrDigit c)
+                    (Character/isWhitespace c))
+              c
+              \.)))
+    (str/join)
+    (println)))

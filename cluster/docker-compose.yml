@@ -67,6 +67,21 @@ services:
       - ./jars:/mnt/jars
       - ./data:/data
 
+  repl:
+    image: java:8-jre-alpine
+    command: java -jar /sparkplug-repl.jar
+    restart: on-failure
+    hostname: repl
+    environment:
+      SPARKPLUG_REPL_MASTER: spark://master:7077
+      SPARKPLUG_REPL_PORT: 8765
+    ports:
+      - 4050:4040
+      - 8765:8765
+    volumes:
+      - ./jars/sparkplug-repl.jar:/sparkplug-repl.jar
+      - ./data:/data
+
 networks:
   default:
     ipam:

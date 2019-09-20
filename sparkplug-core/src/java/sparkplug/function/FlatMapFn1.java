@@ -14,8 +14,8 @@ import org.apache.spark.api.java.function.FlatMapFunction;
  */
 public class FlatMapFn1 extends SerializableFn implements FlatMapFunction {
 
-    public FlatMapFn1(IFn f, Collection<String> namespaces) {
-        super(f, namespaces);
+    public FlatMapFn1(IFn f) {
+        super(f);
     }
 
 

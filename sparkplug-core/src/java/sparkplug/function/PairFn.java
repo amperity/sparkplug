@@ -5,8 +5,6 @@ import clojure.lang.IFn;
 import clojure.lang.IMapEntry;
 import clojure.lang.IPersistentVector;
 
-import java.util.Collection;
-
 import org.apache.spark.api.java.function.PairFunction;
 
 import scala.Tuple2;
@@ -18,8 +16,8 @@ import scala.Tuple2;
  */
 public class PairFn extends SerializableFn implements PairFunction {
 
-    public PairFn(IFn f, Collection<String> namespaces) {
-        super(f, namespaces);
+    public PairFn(IFn f) {
+        super(f);
     }
 
 

@@ -3,8 +3,6 @@ package sparkplug.function;
 
 import clojure.lang.IFn;
 
-import java.util.Collection;
-
 import org.apache.spark.api.java.function.VoidFunction;
 
 
@@ -13,8 +11,8 @@ import org.apache.spark.api.java.function.VoidFunction;
  */
 public class VoidFn extends SerializableFn implements VoidFunction {
 
-    public VoidFn(IFn f, Collection<String> namespaces) {
-        super(f, namespaces);
+    public VoidFn(IFn f) {
+        super(f);
     }
 
 

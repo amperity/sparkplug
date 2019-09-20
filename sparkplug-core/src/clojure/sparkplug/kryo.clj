@@ -294,14 +294,14 @@
 
 (defn load-registry!
   "Process the given registry file map and enact the contained actions."
-  [kryo registry]
+  [^Kryo kryo registry]
   (log/debugf "Loading registry %s in %s" (:name registry) (:path registry))
   (run! (partial run-action! kryo registry) (:actions registry)))
 
 
 (defn configure!
   "Configure the given Kryo instance by loading registries from the classpath."
-  [kryo]
+  [^Kryo kryo]
   (.setInstantiatorStrategy kryo (StdInstantiatorStrategy.))
   (run! (partial load-registry! kryo) (classpath-registries)))
 

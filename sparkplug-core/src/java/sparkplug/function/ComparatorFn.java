@@ -3,17 +3,16 @@ package sparkplug.function;
 
 import clojure.lang.IFn;
 
-import java.util.Collection;
 import java.util.Comparator;
 
 
 /**
- * Compatibility wrapper for a Spark `Function2` of two arguments.
+ * Compatibility wrapper for a `Comparator` of two arguments.
  */
 public class ComparatorFn extends SerializableFn implements Comparator<Object> {
 
-    public ComparatorFn(IFn f, Collection<String> namespaces) {
-        super(f, namespaces);
+    public ComparatorFn(IFn f) {
+        super(f);
     }
 
 

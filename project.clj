@@ -20,6 +20,7 @@
   :monolith
   {:project-dirs ["sparkplug-core"
                   "sparkplug-sql"
-                  "sparkplug-ml"]
+                  "sparkplug-ml"
+                  "sparkplug-repl"]
    :inherit [:deploy-branches
              :pedantic?]})

@@ -5,7 +5,7 @@ services:
       context: .
       dockerfile: Dockerfile
       args:
-        HADOOP_VERSION: 3.2.0
+        HADOOP_VERSION: 2.9.2
         SPARK_VERSION: 2.4.4
         SPARK_VARIANT: without-hadoop-scala-2.12
     command: sbin/start-master.sh
@@ -37,7 +37,7 @@ services:
       context: .
       dockerfile: Dockerfile
       args:
-        HADOOP_VERSION: 3.2.0
+        HADOOP_VERSION: 2.9.2
         SPARK_VERSION: 2.4.4
         SPARK_VARIANT: without-hadoop-scala-2.12
     command: sbin/start-slave.sh spark://master:7077
@@ -65,6 +65,7 @@ services:
       - 8881:8881
     volumes:
       - ./jars:/mnt/jars
+      - ./data:/data
 
 networks:
   default:

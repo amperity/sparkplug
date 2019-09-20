@@ -279,7 +279,7 @@
                         {:type ::bad-action})))
       (catch Exception ex
         (let [message (format "Failed to perform %s action on line %s of %s in %s"
-                              (name type) line name path)
+                              (clojure.core/name type) line name path)
               cause (when (not= ::bad-action (:type (ex-data ex)))
                       ex)]
           (log/error message (.getMessage ex))
@@ -378,7 +378,7 @@
   [^Output output ^BigInteger value]
   (let [int-bytes (.toByteArray value)]
     (.writeVarInt output (alength int-bytes) true)
-    (.write output int-bytes)))
+    (.writeBytes output int-bytes)))
 
 
 (defn- read-biginteger

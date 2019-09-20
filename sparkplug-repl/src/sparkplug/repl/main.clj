@@ -84,7 +84,8 @@
 (defn -main
   "Main entry point for launching the nREPL server."
   [& args]
-  (let [master (System/getenv "SPARKPLUG_REPL_MASTER")
+  (let [master (or (System/getenv "SPARKPLUG_REPL_MASTER")
+                   "local[*]")
         port (-> (System/getenv "SPARKPLUG_REPL_PORT")
                  (or "8765")
                  (Integer/parseInt))]

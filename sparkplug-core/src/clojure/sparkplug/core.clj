@@ -18,7 +18,23 @@
     (org.apache.spark.api.java
       JavaPairRDD
       JavaRDD
-      JavaSparkContext)))
+      JavaSparkContext)
+    sparkplug.broadcast.DerefBroadcast))
+
+
+;; ## Broadcast Variables
+
+(defn broadcast
+  "Broadcast a read-only variable to the cluster, returning a reference for
+  reading it in distributed functions. The variable data will be sent to each
+  cluster only once.
+
+  The returned broadcast value can be resolved with `deref` or the `@` reader
+  macro."
+  [^JavaSparkContext spark-context value]
+  (let [broadcast (.broadcast spark-context value)]
+    (DerefBroadcast. broadcast (class value))))
+
 
 
 ;; ## RDD Transformations

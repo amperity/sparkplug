@@ -93,4 +93,10 @@ here.
 - `tuple-by` not implemented
 - `key-by-fn` not implemented
 - `rdd-name` replaced by `sparkplug.rdd/name` and `sparkplug.rdd/set-name` for
-  the read and write operations, respectively.
+  the read and write operations, respectively
+
+
+## `sparkling.broadcast`
+
+- `broadcast` moved to `sparkplug.core/broadcast`
+- `value` not implemented, deref the broadcast values instead

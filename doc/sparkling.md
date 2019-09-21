@@ -100,3 +100,11 @@ here.
 
 - `broadcast` moved to `sparkplug.core/broadcast`
 - `value` not implemented, deref the broadcast values instead
+
+
+## `sparkling.accumulator`
+
+- `accumulator` replaced with type-specific v2 constructors:
+    - `long-accumulator`
+    - `double-accumulator`
+    - `collection-accumulator`

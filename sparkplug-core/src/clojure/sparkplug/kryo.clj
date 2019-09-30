@@ -1,10 +1,10 @@
 (ns sparkplug.kryo
   "Functions for managing object serialization with Kryo.
 
-  To configure a new Kryo instance, this class looks up all files named
-  `sparkplug/kryo/registry.conf` on the classpath. The files are read in sorted
-  order, one line at a time. Each line should be tab-separated and begin with
-  the desired action:
+  To configure a new Kryo instance, this class looks up all resources in
+  directories named `sparkplug/kryo/registry/` on the classpath. The files are
+  read in sorted order, one line at a time. Each line should be tab-separated
+  and begin with the desired action:
 
   - `require        {{namespace}}`
     Require a namespace to load code or for other side effects.

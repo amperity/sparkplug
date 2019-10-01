@@ -26,5 +26,4 @@
   {:num-tests 1000
    :max-size 20}
   (prop/for-all [x gen/any-equatable]
-    (println (pr-str x))
     (is (= x (->> x (kryo/encode kryo) (kryo/decode kryo))))))

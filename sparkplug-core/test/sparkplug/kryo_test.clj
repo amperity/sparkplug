@@ -4,6 +4,7 @@
     [clojure.test.check.clojure-test :refer [defspec]]
     [clojure.test.check.generators :as gen]
     [clojure.test.check.properties :as prop]
+    [clojure.walk :as walk]
     [sparkplug.kryo :as kryo])
   (:import
     com.esotericsoftware.kryo.Kryo
@@ -18,36 +19,20 @@
     (is (<= 2 (count registries)))))
 
 
-(defn- serialize
-  ^bytes [^Kryo kryo obj]
-  (let [output (Output. 4096 -1)]
-    (.writeClassAndObject kryo output obj)
-    (.flush output)
-    (.getBuffer output)))
-
-
-(defn- deserialize
-  [^Kryo kryo ^bytes data]
-  (let [input (Input. data)]
-    (.readClassAndObject kryo input)))
-
-
-(defn- replace-nans
+(defn- replace-incomparable-types
+  "Replace regex patterns and NaN with keywords because they are not
+  comparable by value."
   [x]
-  (clojure.walk/postwalk
-    #(if (and (number? %) (Double/isNaN %))
-       :NaN
-       %)
+  (walk/postwalk
+    #(cond (and (number? %) (Double/isNaN %)) :NaN
+           (instance? java.util.regex.Pattern %) :regex
+           :else %)
     x))
 
 
 (def kryo (kryo/initialize))
 
 
-(defspec clojure-kryo 1000
-  (prop/for-all [x gen/any]
-    (is (= (replace-nans x)
-           (->> x
-                (serialize kryo)
-                (deserialize kryo)
-                replace-nans)))))
+(defspec clojure-data-roundtrip 1000
+  (prop/for-all [x (gen/fmap replace-incomparable-types gen/any)]
+    (is (= x (->> x (kryo/encode kryo) (kryo/decode kryo))))))

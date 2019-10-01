@@ -19,20 +19,12 @@
     (is (<= 2 (count registries)))))
 
 
-(defn- replace-incomparable-types
-  "Replace regex patterns and NaN with keywords because they are not
-  comparable by value."
-  [x]
-  (walk/postwalk
-    #(cond (and (number? %) (Double/isNaN %)) :NaN
-           (instance? java.util.regex.Pattern %) :regex
-           :else %)
-    x))
-
-
 (def kryo (kryo/initialize))
 
 
-(defspec clojure-data-roundtrip 1000
-  (prop/for-all [x (gen/fmap replace-incomparable-types gen/any)]
+(defspec clojure-data-roundtrip
+  {:num-tests 1000
+   :max-size 20}
+  (prop/for-all [x gen/any-equatable]
+    (println (pr-str x))
     (is (= x (->> x (kryo/encode kryo) (kryo/decode kryo))))))

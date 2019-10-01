@@ -78,9 +78,12 @@
   ([f ^JavaRDD rdd]
    (map-partitions f false rdd))
   ^JavaRDD
-  ([f preserve-partitioni ^JavaRDD rdd]
+  ([f preserve-partitioning? ^JavaRDD rdd]
    (rdd/set-callsite-name
-     (.mapPartitions rdd (f/flat-map-fn f))
+     (.mapPartitions
+       rdd
+       (f/flat-map-fn f)
+       (boolean preserve-partitioning?))
      (rdd/fn-name f))))
 
 

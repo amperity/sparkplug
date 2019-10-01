@@ -1,6 +1,9 @@
 (ns sparkplug.kryo-test
   (:require
     [clojure.test :refer [are deftest testing is]]
+    [clojure.test.check.clojure-test :refer [defspec]]
+    [clojure.test.check.generators :as gen]
+    [clojure.test.check.properties :as prop]
     [sparkplug.kryo :as kryo])
   (:import
     com.esotericsoftware.kryo.Kryo
@@ -29,16 +32,22 @@
     (.readClassAndObject kryo input)))
 
 
-(deftest clojure-serialization
-  (are [x] (let [kryo (kryo/initialize)]
-             (= x (->> x (serialize kryo) (deserialize kryo))))
+(defn- replace-nans
+  [x]
+  (clojure.walk/postwalk
+    #(if (and (number? %) (Double/isNaN %))
+       :NaN
+       %)
+    x))
 
-    5
-    5/7
-    'foo
-    "foo"
-    :foo
-    [1]
-    #{"a"}
-    {"a" "b"}
-    {:foo "bar"}))
+
+(def kryo (kryo/initialize))
+
+
+(defspec clojure-kryo 1000
+  (prop/for-all [x gen/any]
+    (is (= (replace-nans x)
+           (->> x
+                (serialize kryo)
+                (deserialize kryo)
+                replace-nans)))))

@@ -17,6 +17,11 @@
    [amperity/sparkplug-sql "0.1.0-SNAPSHOT"]
    [amperity/sparkplug-ml "0.1.0-SNAPSHOT"]]
 
+  :profiles
+  {:dev
+   {:dependencies
+    [[org.clojure/test.check "0.10.0"]]}}
+
   :monolith
   {:project-dirs ["sparkplug-core"
                   "sparkplug-sql"

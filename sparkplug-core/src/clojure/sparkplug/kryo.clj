@@ -523,8 +523,9 @@
   "Write a sequence of key/value pairs to the Kryo output."
   [^Kryo kryo ^Output output coll]
   (.writeVarInt output (count coll) true)
-  (doseq [x coll]
-    (.writeClassAndObject kryo output x)))
+  (doseq [[k v] coll]
+    (.writeClassAndObject kryo output k)
+    (.writeClassAndObject kryo output v)))
 
 
 (defn- read-kvs

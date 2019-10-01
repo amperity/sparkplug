@@ -30,7 +30,9 @@
    [:base :system :user :provided :spark-2.4 :dev]
 
    :dev
-   {:jvm-opts ["-server" "-Xmx2g"]}
+   {:jvm-opts ["-server" "-Xmx2g"]
+    :dependencies
+    [[org.clojure/test.check "0.10.0"]]}
 
    :repl
    {:source-paths ["dev"]

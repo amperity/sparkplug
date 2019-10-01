@@ -16,6 +16,7 @@
     (org.apache.spark.api.java
       JavaPairRDD
       JavaRDD
+      JavaRDDLike
       JavaSparkContext
       StorageLevels)))
 
@@ -24,14 +25,14 @@
 
 (defn name
   "Return the current name for `rdd`."
-  [^JavaRDD rdd]
+  [rdd]
   (.name rdd))
 
 
 (defn set-name
   "Set the name of `rdd` to `name-str`."
-  ^JavaRDD
-  [name-str ^JavaRDD rdd]
+  ^JavaRDDLike
+  [name-str rdd]
   (.setName rdd name-str))
 
 
@@ -176,7 +177,7 @@
   directory `path` in the local filesystem, HDFS or any other Hadoop-supported
   file system. Spark will call toString on each element to convert it to a line
   of text in the file."
-  [path ^JavaRDD rdd]
+  [path ^JavaRDDLike rdd]
   (.saveAsTextFile rdd (str path)))
 
 
@@ -201,14 +202,14 @@
 
 (defn partitions
   "Return a vector of the partitions in `rdd`."
-  [^JavaRDD rdd]
+  [^JavaRDDLike rdd]
   (into [] (.partitions (.rdd rdd))))
 
 
 (defn partitioner
   "Return the partitioner associated with `rdd`, or nil if there is no custom
   partitioner."
-  [^JavaPairRDD rdd]
+  [^JavaRDDLike rdd]
   (scala/resolve-option
     (.partitioner (.rdd rdd))))
 
@@ -239,10 +240,9 @@
 (defn coalesce
   "Decrease the number of partitions in `rdd` to `n`. Useful for running
   operations more efficiently after filtering down a large dataset."
-  ^JavaRDD
-  ([num-partitions ^JavaRDD rdd]
+  ([num-partitions rdd]
    (coalesce num-partitions false rdd))
-  ([num-partitions shuffle? ^JavaRDD rdd]
+  ([num-partitions shuffle? rdd]
    (set-callsite-name
      (.coalesce rdd (int num-partitions) (boolean shuffle?))
      (int num-partitions)
@@ -286,11 +286,9 @@
 
   This can only be used to assign a new storage level if the RDD does not have
   a storage level set already."
-  ^JavaRDD
-  ([^JavaRDD rdd]
+  ([rdd]
    (.cache rdd))
-  ^JavaRDD
-  ([level ^JavaRDD rdd]
+  ([level rdd]
    {:pre [(contains? storage-levels level)]}
    (.persist rdd (get storage-levels level))))
 
@@ -299,17 +297,15 @@
   "Mark `rdd` as non-persistent, and remove all blocks for it from memory and
   disk. Blocks until all data has been removed unless `blocking?` is provided
   and false."
-  ^JavaRDD
-  ([^JavaRDD rdd]
+  ([rdd]
    (.unpersist rdd))
-  ^JavaRDD
-  ([blocking? ^JavaRDD rdd]
+  ([blocking? rdd]
    (.unpersist rdd (boolean blocking?))))
 
 
 (defn checkpointed?
   "True if `rdd` has been marked for checkpointing."
-  [^JavaRDD rdd]
+  [^JavaRDDLike rdd]
   (.isCheckpointed rdd))
 
 
@@ -321,5 +317,5 @@
   This function must be called before any job has been executed on this RDD. It
   is strongly recommended that this RDD is persisted in memory, otherwise
   saving it to a file will require recomputation."
-  [^JavaRDD rdd]
+  [^JavaRDDLike rdd]
   (.checkpoint rdd))

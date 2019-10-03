@@ -738,7 +738,7 @@
 
   This is an action that causes computation."
   [^JavaPairRDD rdd]
-  (into {} (.countByKey rdd)))
+  (c/into {} (.countByKey rdd)))
 
 
 (defn count-by-value
@@ -747,4 +747,4 @@
 
   This is an action that causes computation."
   [^JavaRDDLike rdd]
-  (into {} (.countByValue rdd)))
+  (c/into {} (.countByValue rdd)))

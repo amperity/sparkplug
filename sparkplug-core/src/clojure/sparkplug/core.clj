@@ -42,7 +42,7 @@
 
 (defn filter
   "Filter the elements of `rdd` to the ones which satisfy the predicate `f`."
-  ^JavaRDD
+  ^JavaRDDLike
   [f ^JavaRDDLike rdd]
   (rdd/set-callsite-name
     (.filter rdd (f/fn1 (comp boolean f)))
@@ -52,8 +52,8 @@
 (defn map
   "Map the function `f` over each element of `rdd`. Returns a new RDD
   representing the transformed elements."
-  ^JavaRDD
-  [f ^JavaRDD rdd]
+  ^JavaRDDLike
+  [f ^JavaRDDLike rdd]
   (rdd/set-callsite-name
     (.map rdd (f/fn1 f))
     (rdd/fn-name f)))
@@ -75,10 +75,10 @@
   results. Returns an RDD representing the concatenation of all the partition
   results. The function will be called with an iterator of the elements of each
   partition."
-  ^JavaRDD
+  ^JavaRDDLike
   ([f ^JavaRDDLike rdd]
    (map-partitions f false rdd))
-  ^JavaRDD
+  ^JavaRDDLike
   ([f preserve-partitioning? ^JavaRDDLike rdd]
    (rdd/set-callsite-name
      (.mapPartitions
@@ -104,11 +104,11 @@
   "Construct an RDD containing only a single copy of each distinct element in
   `rdd`. Optionally accepts a number of partitions to size the resulting RDD
   with."
-  ^JavaRDD
-  ([^JavaRDD rdd]
+  ^JavaRDDLike
+  ([^JavaRDDLike rdd]
    (rdd/set-callsite-name
      (.distinct rdd)))
-  ([num-partitions ^JavaRDD rdd]
+  ([num-partitions ^JavaRDDLike rdd]
    (rdd/set-callsite-name
      (.distinct rdd (int num-partitions))
      (int num-partitions))))
@@ -118,19 +118,19 @@
   "Generate a randomly sampled subset of `rdd` with roughly `fraction` of the
   original elements. Callers can optionally select whether the sample happens
   with replacement, and a random seed to control the sample."
-  ^JavaRDD
-  ([fraction ^JavaRDD rdd]
+  ^JavaRDDLike
+  ([fraction ^JavaRDDLike rdd]
    (rdd/set-callsite-name
      (.sample rdd true (double fraction))
      (double fraction)))
-  ^JavaRDD
-  ([fraction replacement? ^JavaRDD rdd]
+  ^JavaRDDLike
+  ([fraction replacement? ^JavaRDDLike rdd]
    (rdd/set-callsite-name
      (.sample rdd (boolean replacement?) (double fraction))
      (double fraction)
      (boolean replacement?)))
-  ^JavaRDD
-  ([fraction replacement? seed ^JavaRDD rdd]
+  ^JavaRDDLike
+  ([fraction replacement? seed ^JavaRDDLike rdd]
    (rdd/set-callsite-name
      (.sample rdd (boolean replacement?) (double fraction) (long seed))
      (double fraction)
@@ -160,6 +160,7 @@
 (defn key-by
   "Creates pairs from the elements in `rdd` by using `f` to compute a key for
   each value."
+  ^JavaPairRDD
   [f ^JavaRDDLike rdd]
   (rdd/set-callsite-name
     (.mapToPair rdd (f/pair-fn (juxt f identity)))
@@ -293,8 +294,8 @@
 
 (defn subtract
   "Remove all elements from `rdd1` that are present in `rdd2`."
-  ^JavaRDD
-  [^JavaRDD rdd1 ^JavaRDD rdd2]
+  ^JavaRDDLike
+  [^JavaRDDLike rdd1 ^JavaRDDLike rdd2]
   (rdd/set-callsite-name
     (.subtract rdd1 rdd2)))
 

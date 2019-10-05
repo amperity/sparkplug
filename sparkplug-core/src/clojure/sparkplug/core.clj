@@ -268,6 +268,7 @@
     (.cartesian rdd1 rdd2)))
 
 
+;; Type hints are omitted because `union` is not included in JavaRDDLike.
 (defn union
   "Construct a union of the elements in the provided RDDs. Any identical
   elements will appear multiple times."
@@ -284,6 +285,7 @@
              ^java.util.List (list* rdd2 rdds)))))
 
 
+;; Type hints are omitted because `intersecton` is not included in JavaRDDLike.
 (defn intersection
   "Construct an RDD representing the intersection of elements which are in both
   RDDs."

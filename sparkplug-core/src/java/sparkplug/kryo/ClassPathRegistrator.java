@@ -15,18 +15,31 @@ import org.apache.spark.serializer.KryoRegistrator;
  */
 public class ClassPathRegistrator implements KryoRegistrator {
 
-    private static final IFn resolve = RT.var("clojure.core", "requiring-resolve");
-    private static final Symbol symbol = Symbol.intern("sparkplug.kryo", "configure!");
+    /**
+     * Wrapper class to efficiently ensure the configuration function is only
+     * loaded once.
+     */
+    private static class Singleton {
+
+        private static final IFn configure;
+
+        static {
+            IFn resolve = RT.var("clojure.core", "requiring-resolve");
+            Symbol name = Symbol.intern("sparkplug.kryo", "load-configuration");
+            IFn loader = (IFn)resolve.invoke(name);
+            configure = (IFn)loader.invoke();
+        }
+
+    }
 
 
     @Override
     public void registerClasses(Kryo kryo) {
 
-        // Resolve the registration function and invoke it.
-        IFn configure = (IFn)resolve.invoke(symbol);
+        IFn configure = Singleton.configure;
 
         if (configure == null) {
-            throw new RuntimeException("Could not resolve sparkplug configuration function " + symbol);
+            throw new RuntimeException("Could not construct kryo configuration function!");
         }
 
         configure.invoke(kryo);

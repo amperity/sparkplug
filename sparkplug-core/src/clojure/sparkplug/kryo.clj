@@ -176,9 +176,11 @@
 
 ;; ## Registry Actions
 
-(defn- run-require-action!
-  "Perform a `require` action from a registry config."
+(defn- load-require-action
+  "Prepare a `require` action from a registry. Requires the namespace and
+  returns nil."
   [args]
+  ;; Check arguments.
   (when-not (= 1 (count args))
     (throw (ex-info (str "require action takes exactly one argument, not "
                          (count args))
@@ -186,9 +188,12 @@
   (when (str/includes? (first args) "/")
     (throw (ex-info "require action argument should not be namespaced"
                     {:type ::bad-action})))
+  ;; Require the namespace code.
   (let [ns-sym (symbol (first args))]
     (log/debug "Requiring namespace" ns-sym)
-    (require ns-sym)))
+    (require ns-sym))
+  ;; Nothing to do per-kryo instance afterwards.
+  nil)
 
 
 (defn- convert-array-class
@@ -207,9 +212,11 @@
              "L" class-name ";")))))
 
 
-(defn- run-register-action!
-  "Perform a `register` action from a registry config."
-  [^Kryo kryo args]
+(defn- load-register-action
+  "Prepare a `register` action from a registry at load-time. Loads the class to
+  register and any serialzer and returns a function which will register the
+  class with a Kryo instance."
+  [args]
   (when-not (<= 1 (count args) 2)
     (throw (ex-info (str "register action takes one or two arguments, not "
                          (count args))
@@ -227,21 +234,29 @@
         (if (str/includes? serializer-name "/")
           ;; Resolve the named function to construct a new serializer instance.
           (if-let [constructor (requiring-resolve (symbol serializer-name))]
-            (.register kryo target-class ^Serializer (constructor))
+            (fn register
+              [^Kryo kryo]
+              (let [serializer ^Serializer (constructor)]
+                (.register kryo target-class serializer)))
             (throw (ex-info (str "Could not resolve serializer constructor function "
                                  serializer-name)
                             {:type ::bad-action})))
           ;; Assume the serializer is a class name and construct an instance.
-          (let [serializer-class (Class/forName serializer-name)
-                serializer ^Serializer (.newInstance serializer-class)]
-            (.register kryo target-class serializer)))
+          (let [serializer-class (Class/forName serializer-name)]
+            (fn register
+              [^Kryo kryo]
+              (let [serializer ^Serializer (.newInstance serializer-class)]
+                (.register kryo target-class serializer)))))
         ;; No serializer, register with defaults.
-        (.register kryo target-class)))))
+        (fn register
+          [^Kryo kryo]
+          (.register kryo target-class))))))
 
 
-(defn- run-configure-action!
-  "Perform a `configure` action from a registry config."
-  [^Kryo kryo args]
+(defn- load-configure-action
+  "Prepare a `configure` action from a registry at load-time. Resolves the
+  configuration function and returns it."
+  [args]
   (when-not (= 1 (count args))
     (throw (ex-info (str "configure action takes exactly one argument, not "
                          (count args))
@@ -251,39 +266,38 @@
                     {:type ::bad-action})))
   (let [var-name (symbol (first args))]
     (log/debug "Configuring Kryo with function" var-name)
-    (if-let [configure (requiring-resolve var-name)]
-      (configure kryo)
-      (throw (ex-info (str "Could not resolve configuration function "
-                           var-name)
-                      {:type ::bad-action})))))
+    (or (requiring-resolve var-name)
+        (throw (ex-info (str "Could not resolve configuration function "
+                             var-name)
+                        {:type ::bad-action})))))
 
 
-(defn- run-action!
-  "Take the configuration `action` as read from the given `registry`.
-  Dispatches by action type."
-  [kryo registry action]
+(defn- load-action
+  "Load the configuration `action` as read from the given `registry`.
+  Dispatches on action type."
+  [registry action]
   (let [{:keys [path name text]} registry
         {:keys [line type args]} action]
     (try
       (case type
         :require
-        (run-require-action! args)
+        (load-require-action args)
 
         :register
-        (run-register-action! kryo args)
+        (load-register-action args)
 
         :configure
-        (run-configure-action! kryo args)
+        (load-configure-action args)
 
         (throw (ex-info (str "Unsupported registry action " (pr-str type))
                         {:type ::bad-action})))
       (catch Exception ex
-        (let [message (format "Failed to perform %s action on line %s of %s in %s"
+        (let [message (format "Failed to load %s action on line %s of %s in %s"
                               (clojure.core/name type) line name path)
               cause (when (not= ::bad-action (:type (ex-data ex)))
                       ex)]
-          (log/error message (.getMessage ex))
-          (throw (ex-info (str message ": " (.getMessage ex))
+          (log/error message (ex-message ex))
+          (throw (ex-info (str message ": " (ex-message ex))
                           {:path path
                            :name name
                            :line line
@@ -292,26 +306,37 @@
                           cause)))))))
 
 
-(defn load-registry!
-  "Process the given registry file map and enact the contained actions."
-  [^Kryo kryo registry]
+(defn- load-registry
+  "Process the given registry file map and returns a sequence of all
+  loaded configuration functions."
+  [registry]
   (log/debugf "Loading registry %s in %s" (:name registry) (:path registry))
-  (run! (partial run-action! kryo registry) (:actions registry)))
+  (into []
+        (keep (partial load-action registry))
+        (:actions registry)))
 
 
-(defn configure!
-  "Configure the given Kryo instance by loading registries from the classpath."
-  [^Kryo kryo]
-  (.setInstantiatorStrategy kryo (StdInstantiatorStrategy.))
-  (run! (partial load-registry! kryo) (classpath-registries)))
+(defn load-configuration
+  "Walk the classpath and load configuration actions from all discovered
+  registries. Returns a function which can be called on a Kryo serializer to
+  configure it."
+  []
+  (let [actions (into [] (mapcat load-registry) (classpath-registries))]
+    (fn configure!
+      [^Kryo kryo]
+      (.setInstantiatorStrategy kryo (StdInstantiatorStrategy.))
+      (doseq [f actions]
+        (f kryo)))))
 
 
 (defn initialize
-  "Creates a new Kryo instance and configures it with `configure!`."
+  "Creates a new Kryo instance and configures it with classpath registry
+  actions."
   ^Kryo
   []
-  (doto (Kryo.)
-    (configure!)))
+  (let [configure! (load-configuration)]
+    (doto (Kryo.)
+      (configure!))))
 
 
 

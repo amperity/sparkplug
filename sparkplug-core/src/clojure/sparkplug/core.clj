@@ -18,6 +18,7 @@
     (org.apache.spark.api.java
       JavaPairRDD
       JavaRDD
+      JavaRDDLike
       JavaSparkContext)
     sparkplug.broadcast.DerefBroadcast))
 
@@ -41,8 +42,8 @@
 
 (defn filter
   "Filter the elements of `rdd` to the ones which satisfy the predicate `f`."
-  ^JavaRDD
-  [f ^JavaRDD rdd]
+  ^JavaRDDLike
+  [f ^JavaRDDLike rdd]
   (rdd/set-callsite-name
     (.filter rdd (f/fn1 (comp boolean f)))
     (rdd/fn-name f)))
@@ -51,8 +52,8 @@
 (defn map
   "Map the function `f` over each element of `rdd`. Returns a new RDD
   representing the transformed elements."
-  ^JavaRDD
-  [f ^JavaRDD rdd]
+  ^JavaRDDLike
+  [f ^JavaRDDLike rdd]
   (rdd/set-callsite-name
     (.map rdd (f/fn1 f))
     (rdd/fn-name f)))
@@ -63,7 +64,7 @@
   results. Returns an RDD representing the concatenation of all element
   results."
   ^JavaRDD
-  [f ^JavaRDD rdd]
+  [f ^JavaRDDLike rdd]
   (rdd/set-callsite-name
     (.flatMap rdd (f/flat-map-fn f))
     (rdd/fn-name f)))
@@ -74,11 +75,11 @@
   results. Returns an RDD representing the concatenation of all the partition
   results. The function will be called with an iterator of the elements of each
   partition."
-  ^JavaRDD
-  ([f ^JavaRDD rdd]
+  ^JavaRDDLike
+  ([f ^JavaRDDLike rdd]
    (map-partitions f false rdd))
-  ^JavaRDD
-  ([f preserve-partitioning? ^JavaRDD rdd]
+  ^JavaRDDLike
+  ([f preserve-partitioning? ^JavaRDDLike rdd]
    (rdd/set-callsite-name
      (.mapPartitions
        rdd
@@ -93,7 +94,7 @@
   results. The function will be called with the partition index and an iterator
   of the elements of each partition."
   ^JavaRDD
-  [f ^JavaRDD rdd]
+  [f ^JavaRDDLike rdd]
   (rdd/set-callsite-name
     (.mapPartitionsWithIndex rdd (f/fn2 f) true)
     (rdd/fn-name f)))
@@ -103,11 +104,11 @@
   "Construct an RDD containing only a single copy of each distinct element in
   `rdd`. Optionally accepts a number of partitions to size the resulting RDD
   with."
-  ^JavaRDD
-  ([^JavaRDD rdd]
+  ^JavaRDDLike
+  ([^JavaRDDLike rdd]
    (rdd/set-callsite-name
      (.distinct rdd)))
-  ([num-partitions ^JavaRDD rdd]
+  ([num-partitions ^JavaRDDLike rdd]
    (rdd/set-callsite-name
      (.distinct rdd (int num-partitions))
      (int num-partitions))))
@@ -117,19 +118,19 @@
   "Generate a randomly sampled subset of `rdd` with roughly `fraction` of the
   original elements. Callers can optionally select whether the sample happens
   with replacement, and a random seed to control the sample."
-  ^JavaRDD
-  ([fraction ^JavaRDD rdd]
+  ^JavaRDDLike
+  ([fraction ^JavaRDDLike rdd]
    (rdd/set-callsite-name
      (.sample rdd true (double fraction))
      (double fraction)))
-  ^JavaRDD
-  ([fraction replacement? ^JavaRDD rdd]
+  ^JavaRDDLike
+  ([fraction replacement? ^JavaRDDLike rdd]
    (rdd/set-callsite-name
      (.sample rdd (boolean replacement?) (double fraction))
      (double fraction)
      (boolean replacement?)))
-  ^JavaRDD
-  ([fraction replacement? seed ^JavaRDD rdd]
+  ^JavaRDDLike
+  ([fraction replacement? seed ^JavaRDDLike rdd]
    (rdd/set-callsite-name
      (.sample rdd (boolean replacement?) (double fraction) (long seed))
      (double fraction)
@@ -159,7 +160,8 @@
 (defn key-by
   "Creates pairs from the elements in `rdd` by using `f` to compute a key for
   each value."
-  [f ^JavaRDD rdd]
+  ^JavaPairRDD
+  [f ^JavaRDDLike rdd]
   (rdd/set-callsite-name
     (.mapToPair rdd (f/pair-fn (juxt f identity)))
     (rdd/fn-name f)))
@@ -169,7 +171,7 @@
   "Map the function `f` over each element of `rdd`. Returns a new pair RDD
   representing the transformed elements."
   ^JavaPairRDD
-  [f ^JavaRDD rdd]
+  [f ^JavaRDDLike rdd]
   (rdd/set-callsite-name
     (.mapToPair rdd (f/pair-fn f))
     (rdd/fn-name f)))
@@ -180,7 +182,7 @@
   key-value pairs. Returns a new pair RDD representing the concatenation of all
   result pairs."
   ^JavaPairRDD
-  [f ^JavaRDD rdd]
+  [f ^JavaRDDLike rdd]
   (rdd/set-callsite-name
     (.flatMapToPair rdd (f/pair-flat-map-fn f))
     (rdd/fn-name f)))
@@ -191,10 +193,10 @@
   key-value pairs. The function will be called with an iterator of the elements
   of the partition."
   ^JavaPairRDD
-  ([f ^JavaRDD rdd]
+  ([f ^JavaRDDLike rdd]
    (map-partitions->pairs f false rdd))
   ^JavaPairRDD
-  ([f preserve-partitioning? ^JavaRDD rdd]
+  ([f preserve-partitioning? ^JavaRDDLike rdd]
    (rdd/set-callsite-name
      (.mapPartitionsToPair
        rdd
@@ -236,7 +238,7 @@
   This method needs to trigger a spark job when `rdd` contains more than one
   partition."
   ^JavaPairRDD
-  [^JavaRDD rdd]
+  [^JavaRDDLike rdd]
   (rdd/set-callsite-name
     (.zipWithIndex rdd)))
 
@@ -249,7 +251,7 @@
   is the number of partitions. So the ids won't be sequential and there may be
   gaps, but this method _won't_ trigger a spark job, unlike `zip-indexed`."
   ^JavaPairRDD
-  [^JavaRDD rdd]
+  [^JavaRDDLike rdd]
   (rdd/set-callsite-name
     (.zipWithUniqueId rdd)))
 
@@ -261,20 +263,19 @@
   "Construct an RDD representing the cartesian product of two RDDs. Returns a
   new pair RDD containing all combinations of elements between the datasets."
   ^JavaPairRDD
-  [^JavaRDD rdd1 ^JavaRDD rdd2]
+  [^JavaRDDLike rdd1 ^JavaRDDLike rdd2]
   (rdd/set-callsite-name
     (.cartesian rdd1 rdd2)))
 
 
+;; Type hints are omitted because `union` is not included in JavaRDDLike.
 (defn union
   "Construct a union of the elements in the provided RDDs. Any identical
   elements will appear multiple times."
-  ^JavaRDD
-  ([^JavaRDD rdd1 ^JavaRDD rdd2]
+  ([rdd1 rdd2]
    (rdd/set-callsite-name
      (.union rdd1 rdd2)))
-  ^JavaRDD
-  ([^JavaRDD rdd1 ^JavaRDD rdd2 & rdds]
+  ([rdd1 rdd2 & rdds]
    (rdd/set-callsite-name
      ;; This method signature is a bit tricky to target since
      ;; `JavaSparkContext` also defines `union` on `JavaPairRDD` and
@@ -284,19 +285,19 @@
              ^java.util.List (list* rdd2 rdds)))))
 
 
+;; Type hints are omitted because `intersecton` is not included in JavaRDDLike.
 (defn intersection
   "Construct an RDD representing the intersection of elements which are in both
   RDDs."
-  ^JavaRDD
-  [^JavaRDD rdd1 ^JavaRDD rdd2]
+  [rdd1 rdd2]
   (rdd/set-callsite-name
     (.intersection rdd1 rdd2)))
 
 
 (defn subtract
   "Remove all elements from `rdd1` that are present in `rdd2`."
-  ^JavaRDD
-  [^JavaRDD rdd1 ^JavaRDD rdd2]
+  ^JavaRDDLike
+  [^JavaRDDLike rdd1 ^JavaRDDLike rdd2]
   (rdd/set-callsite-name
     (.subtract rdd1 rdd2)))
 
@@ -475,12 +476,12 @@
   "Group the elements of `rdd` using a key function `f`. Returns a pair RDD
   with each generated key and all matching elements as a value sequence."
   ^JavaPairRDD
-  ([f ^JavaRDD rdd]
+  ([f ^JavaRDDLike rdd]
    (rdd/set-callsite-name
      (.groupBy rdd (f/fn1 f))
      (rdd/fn-name f)))
   ^JavaPairRDD
-  ([f num-partitions ^JavaRDD rdd]
+  ([f num-partitions ^JavaRDDLike rdd]
    (rdd/set-callsite-name
      (.groupBy rdd (f/fn1 f) (int num-partitions))
      (rdd/fn-name f)
@@ -586,7 +587,7 @@
   memory.
 
   This is an action that causes computation."
-  [^JavaRDD rdd]
+  [^JavaRDDLike rdd]
   (vec (.collect rdd)))
 
 
@@ -599,9 +600,9 @@
   run out of memory.
 
   This is an action that causes computation."
-  ([coll ^JavaRDD rdd]
+  ([coll ^JavaRDDLike rdd]
    (into coll identity rdd))
-  ([coll xf ^JavaRDD rdd]
+  ([coll xf ^JavaRDDLike rdd]
    (c/into coll
            (comp (c/map scala/from-tuple) xf)
            (.collect rdd))))
@@ -615,7 +616,7 @@
   costly resource acquisition such as a database connection.
 
   This is an action that causes computation."
-  [f ^JavaRDD rdd]
+  [f ^JavaRDDLike rdd]
   (.foreach rdd (f/void-fn f)))
 
 
@@ -625,7 +626,7 @@
   where the data resides.
 
   This is an action that causes computation."
-  [f ^JavaRDD rdd]
+  [f ^JavaRDDLike rdd]
   (.foreachPartition rdd (f/void-fn (comp f iterator-seq))))
 
 
@@ -633,7 +634,7 @@
   "Count the number of elements in `rdd`.
 
   This is an action that causes computation."
-  [^JavaRDD rdd]
+  [^JavaRDDLike rdd]
   (.count rdd))
 
 
@@ -641,7 +642,7 @@
   "Find the first element of `rdd`.
 
   This is an action that causes computation."
-  [^JavaRDD rdd]
+  [^JavaRDDLike rdd]
   (.first rdd))
 
 
@@ -649,9 +650,9 @@
   "Find the minimum element in `rdd` in the ordering defined by `compare-fn`.
 
   This is an action that causes computation."
-  ([^JavaRDD rdd]
+  ([^JavaRDDLike rdd]
    (min compare rdd))
-  ([compare-fn ^JavaRDD rdd]
+  ([compare-fn ^JavaRDDLike rdd]
    (.min rdd (f/comparator-fn compare-fn))))
 
 
@@ -659,9 +660,9 @@
   "Find the maximum element in `rdd` in the ordering defined by `compare-fn`.
 
   This is an action that causes computation."
-  ([^JavaRDD rdd]
+  ([^JavaRDDLike rdd]
    (max compare rdd))
-  ([compare-fn ^JavaRDD rdd]
+  ([compare-fn ^JavaRDDLike rdd]
    (.max rdd (f/comparator-fn compare-fn))))
 
 
@@ -673,7 +674,7 @@
   to get the whole RDD instead.
 
   This is an action that causes computation."
-  [n ^JavaRDD rdd]
+  [n ^JavaRDDLike rdd]
   (.take rdd (int n)))
 
 
@@ -686,9 +687,9 @@
   to get the whole RDD instead.
 
   This is an action that causes computation."
-  ([n ^JavaRDD rdd]
+  ([n ^JavaRDDLike rdd]
    (.takeOrdered rdd (int n)))
-  ([n compare-fn ^JavaRDD rdd]
+  ([n compare-fn ^JavaRDDLike rdd]
    (.takeOrdered rdd (int n) (f/comparator-fn compare-fn))))
 
 
@@ -698,7 +699,7 @@
   so that it can be computed correctly in parallel.
 
   This is an action that causes computation."
-  [f ^JavaRDD rdd]
+  [f ^JavaRDDLike rdd]
   (.reduce rdd (f/fn2 f)))
 
 
@@ -708,7 +709,7 @@
   neutral `zero` value.
 
   This is an action that causes computation."
-  [f zero ^JavaRDD rdd]
+  [f zero ^JavaRDDLike rdd]
   (.fold rdd zero (f/fn2 f)))
 
 
@@ -718,7 +719,7 @@
   seeded with the neutral `zero` value.
 
   This is an action that causes computation."
-  [aggregator combiner zero ^JavaRDD rdd]
+  [aggregator combiner zero ^JavaRDDLike rdd]
   (.aggregate rdd zero (f/fn2 aggregator) (f/fn2 combiner)))
 
 
@@ -740,7 +741,7 @@
 
   This is an action that causes computation."
   [^JavaPairRDD rdd]
-  (into {} (.countByKey rdd)))
+  (c/into {} (.countByKey rdd)))
 
 
 (defn count-by-value
@@ -748,5 +749,5 @@
   counts.
 
   This is an action that causes computation."
-  [^JavaPairRDD rdd]
-  (into {} (.countByValue rdd)))
+  [^JavaRDDLike rdd]
+  (c/into {} (.countByValue rdd)))

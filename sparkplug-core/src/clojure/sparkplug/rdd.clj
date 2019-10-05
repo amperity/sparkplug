@@ -130,11 +130,16 @@
   ^JavaPairRDD
   ([^JavaSparkContext spark-context coll]
    (set-callsite-name
-     (.parallelizePairs spark-context coll)))
+     (.parallelizePairs
+       spark-context
+       (map scala/to-pair coll))))
   ^JavaPairRDD
   ([^JavaSparkContext spark-context min-partitions coll]
    (set-callsite-name
-     (.parallelizePairs spark-context coll min-partitions)
+     (.parallelizePairs
+       spark-context
+       (map scala/to-pair coll)
+       min-partitions)
      min-partitions)))
 
 

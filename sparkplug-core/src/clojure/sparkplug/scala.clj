@@ -130,7 +130,6 @@
   (MapEntry. (from-tuple (._1 pair)) (from-tuple (._2 pair))))
 
 
-;; TODO: is this needed?
 (defn to-pair
   "Coerce a Clojure value to a Scala pair (`Tuple2`)."
   ^Tuple2

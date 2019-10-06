@@ -40,10 +40,11 @@
 
 ;; ## RDD Transformations
 
+;; Type hints are omitted because `filter` is not included in JavaRDDLike.
 (defn filter
   "Filter the elements of `rdd` to the ones which satisfy the predicate `f`."
   ^JavaRDDLike
-  [f ^JavaRDDLike rdd]
+  [f rdd]
   (rdd/set-callsite-name
     (.filter rdd (f/fn1 (comp boolean f)))
     (rdd/fn-name f)))
@@ -100,37 +101,40 @@
     (rdd/fn-name f)))
 
 
+;; Type hints are omitted because `distinct` is not included in JavaRDDLike.
 (defn distinct
   "Construct an RDD containing only a single copy of each distinct element in
   `rdd`. Optionally accepts a number of partitions to size the resulting RDD
   with."
   ^JavaRDDLike
-  ([^JavaRDDLike rdd]
+  ([rdd]
    (rdd/set-callsite-name
      (.distinct rdd)))
-  ([num-partitions ^JavaRDDLike rdd]
+  ^JavaRDDLike
+  ([num-partitions rdd]
    (rdd/set-callsite-name
      (.distinct rdd (int num-partitions))
      (int num-partitions))))
 
 
+;; Type hints are omitted because `sample` is not included in JavaRDDLike.
 (defn sample
   "Generate a randomly sampled subset of `rdd` with roughly `fraction` of the
   original elements. Callers can optionally select whether the sample happens
   with replacement, and a random seed to control the sample."
   ^JavaRDDLike
-  ([fraction ^JavaRDDLike rdd]
+  ([fraction rdd]
    (rdd/set-callsite-name
      (.sample rdd true (double fraction))
      (double fraction)))
   ^JavaRDDLike
-  ([fraction replacement? ^JavaRDDLike rdd]
+  ([fraction replacement? rdd]
    (rdd/set-callsite-name
      (.sample rdd (boolean replacement?) (double fraction))
      (double fraction)
      (boolean replacement?)))
   ^JavaRDDLike
-  ([fraction replacement? seed ^JavaRDDLike rdd]
+  ([fraction replacement? seed rdd]
    (rdd/set-callsite-name
      (.sample rdd (boolean replacement?) (double fraction) (long seed))
      (double fraction)
@@ -294,10 +298,11 @@
     (.intersection rdd1 rdd2)))
 
 
+;; Type hints are omitted because `subtract` is not included in JavaRDDLike.
 (defn subtract
   "Remove all elements from `rdd1` that are present in `rdd2`."
   ^JavaRDDLike
-  [^JavaRDDLike rdd1 ^JavaRDDLike rdd2]
+  [rdd1 rdd2]
   (rdd/set-callsite-name
     (.subtract rdd1 rdd2)))
 

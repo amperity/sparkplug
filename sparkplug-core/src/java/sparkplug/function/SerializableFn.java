@@ -8,6 +8,7 @@ import clojure.lang.Symbol;
 
 import java.io.IOException;
 import java.io.InvalidObjectException;
+import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 
@@ -27,7 +28,7 @@ public abstract class SerializableFn implements Serializable {
     }
 
 
-    private void writeObject(java.io.ObjectOutputStream out) throws IOException {
+    private void writeObject(ObjectOutputStream out) throws IOException {
         // Attempt to derive the needed Clojure namespace from the function's class name.
         String namespace = Compiler.demunge(this.f.getClass().getName()).split("/")[0];
         out.writeObject(namespace);
@@ -35,7 +36,7 @@ public abstract class SerializableFn implements Serializable {
     }
 
 
-    private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
+    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
         String namespace = (String)in.readObject();
         Symbol namespaceSym = Symbol.intern(namespace);
         synchronized (RT.REQUIRE_LOCK) {

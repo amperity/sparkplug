@@ -39,6 +39,7 @@ public abstract class SerializableFn implements Serializable {
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
         String namespace = (String)in.readObject();
         Symbol namespaceSym = Symbol.intern(namespace);
+        // TODO: Try optimizing by doing an unsynchronized resolve first.
         synchronized (RT.REQUIRE_LOCK) {
             RT.var("clojure.core", "require").invoke(namespaceSym);
         }

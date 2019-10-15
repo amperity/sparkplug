@@ -4,7 +4,7 @@
   :license {:name "Apache License 2.0"
             :url "http://www.apache.org/licenses/LICENSE-2.0"}
 
-  :deploy-branches ["master"]
+  #_#_:deploy-branches ["master"]
   :pedantic? :warn
 
   :plugins

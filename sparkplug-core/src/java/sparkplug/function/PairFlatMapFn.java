@@ -17,8 +17,8 @@ import scala.Tuple2;
  */
 public class PairFlatMapFn extends SerializableFn implements PairFlatMapFunction {
 
-    public PairFlatMapFn(IFn f) {
-        super(f);
+    public PairFlatMapFn(IFn f, Collection<String> namespaces) {
+        super(f, namespaces);
     }
 
 

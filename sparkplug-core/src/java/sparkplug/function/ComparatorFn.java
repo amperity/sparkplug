@@ -3,6 +3,7 @@ package sparkplug.function;
 
 import clojure.lang.IFn;
 
+import java.util.Collection;
 import java.util.Comparator;
 
 
@@ -11,8 +12,8 @@ import java.util.Comparator;
  */
 public class ComparatorFn extends SerializableFn implements Comparator<Object> {
 
-    public ComparatorFn(IFn f) {
-        super(f);
+    public ComparatorFn(IFn f, Collection<String> namespaces) {
+        super(f, namespaces);
     }
 
 

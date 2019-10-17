@@ -6,6 +6,7 @@
 
   :deploy-branches ["master"]
   :pedantic? :warn
+  :deploy-repositories {"releases" {:url "https://repo.clojars.org"}}
 
   :plugins
   [[lein-cloverage "1.1.1"]

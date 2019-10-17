@@ -77,12 +77,11 @@
   [obj]
   (let [;; Attempt to derive the needed Clojure namespace
         ;; from the function's class name.
-        obj-ns (some->
-                 (.. obj getClass getName)
-                 (Compiler/demunge)
-                 (str/split #"/")
-                 (first)
-                 (symbol))
+        obj-ns (-> (.. obj getClass getName)
+                   (Compiler/demunge)
+                   (str/split #"/")
+                   (first)
+                   (symbol))
         references (HashSet. [obj-ns])
         visited (HashSet.)]
     (walk-object-vars references visited obj)

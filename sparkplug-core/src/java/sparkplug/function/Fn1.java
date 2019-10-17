@@ -3,6 +3,8 @@ package sparkplug.function;
 
 import clojure.lang.IFn;
 
+import java.util.Collection;
+
 import org.apache.spark.api.java.function.Function;
 
 
@@ -11,8 +13,8 @@ import org.apache.spark.api.java.function.Function;
  */
 public class Fn1 extends SerializableFn implements Function {
 
-    public Fn1(IFn f) {
-        super(f);
+    public Fn1(IFn f, Collection<String> namespaces) {
+        super(f, namespaces);
     }
 
 

@@ -339,7 +339,6 @@
       (configure!))))
 
 
-
 ;; ## Serialization Logic
 
 ;; For types that are already registered with efficient serializers, see:

@@ -1,14 +1,14 @@
 (ns sparkplug.function
   "This namespace generates function classes for various kinds of interop with
   Spark and Scala."
+  (:require
+    [clojure.string :as str])
   (:import
     (java.lang.reflect
       Field
       Modifier)
     java.util.HashSet
-    sparkplug.function.SerializableFn)
-  (:require
-    [clojure.string :as str]))
+    sparkplug.function.SerializableFn))
 
 
 ;; ## Namespace Discovery

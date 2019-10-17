@@ -24,16 +24,7 @@
       (.get field obj)
       (catch IllegalAccessException ex
         ;; TODO: warn?
-        nil)
-      (finally
-        ;; TODO: is this a good idea?
-        #_
-        (when-not accessible?
-          (try
-            (.setAccessible field false)
-            (catch Exception ex
-              ;; ignored
-              nil)))))))
+        nil))))
 
 
 (defn- walk-object-vars

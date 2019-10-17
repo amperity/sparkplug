@@ -1,6 +1,6 @@
 (ns sparkplug.function
   "This namespace generates function classes for various kinds of interop with
-  Spark and Scala. This namespace **must** be AOT compiled before using Spark."
+  Spark and Scala."
   (:import
     (java.lang.reflect
       Field

@@ -9,7 +9,6 @@ import clojure.lang.Var;
 
 import java.io.IOException;
 import java.io.InvalidObjectException;
-
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
@@ -41,10 +40,6 @@ public abstract class SerializableFn implements Serializable {
 
     /**
      * Default empty constructor.
-     *
-     * TODO is this accurate?
-     * Inheriting classes must also have an empty constructor to be properly
-     * serializable.
      */
     private SerializableFn() {
     }

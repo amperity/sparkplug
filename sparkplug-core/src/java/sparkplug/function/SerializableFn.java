@@ -69,7 +69,8 @@ public abstract class SerializableFn implements Serializable {
     private void writeObject(ObjectOutputStream out) throws IOException {
         try {
             logger.trace("Serializing " + f);
-            // Write the function class name.
+            // Write the function class name
+            // This is only used for debugging
             out.writeObject(f.getClass().getName());
             // Write out the referenced namespaces.
             out.writeInt(namespaces.size());

@@ -6,7 +6,9 @@
       Field
       Modifier)
     java.util.HashSet
-    sparkplug.function.SerializableFn))
+    sparkplug.function.SerializableFn)
+  (:require
+    [clojure.string :as str]))
 
 
 ;; ## Namespace Discovery
@@ -73,12 +75,19 @@
   "Walk the given function-like object to find all namespaces referenced by
   closed-over vars. Returns a set of referenced namespace symbols."
   [obj]
-  (let [references (HashSet.)
+  (let [;; Attempt to derive the needed Clojure namespace
+        ;; from the function's class name.
+        obj-ns (some->
+                 (.. obj getClass getName)
+                 (Compiler/demunge)
+                 (str/split #"/")
+                 (first)
+                 (symbol))
+        references (HashSet. [obj-ns])
         visited (HashSet.)]
     (walk-object-vars references visited obj)
     (disj (set references)
           'clojure.core)))
-
 
 
 ;; ## Function Wrappers

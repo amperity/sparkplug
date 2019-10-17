@@ -54,11 +54,9 @@ public abstract class SerializableFn implements Serializable {
      */
     protected SerializableFn(IFn fn, Collection<String> namespaces) {
         this.f = fn;
-        this.namespaces = new ArrayList<String>(namespaces);
-        // Attempt to derive the needed Clojure namespace from the function's class name.
-        String fnNamespace = Compiler.demunge(fn.getClass().getName()).split("/")[0];
-        this.namespaces.add(fnNamespace);
-        Collections.sort(this.namespaces);
+        List<String> namespaceColl = new ArrayList<String>(namespaces);
+        Collections.sort(namespaceColl);
+        this.namespaces = Collections.unmodifiableList(namespaceColl);
     }
 
 

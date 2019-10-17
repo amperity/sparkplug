@@ -1,6 +1,8 @@
 Spark Core API
 ==============
 
+[![cljdoc](https://cljdoc.org/badge/amperity/sparkplug-core)](https://cljdoc.org/d/amperity/sparkplug-core/CURRENT)
+
 This library contains the core API for working with Spark. If you want to get
 the basic building blocks of a Spark application, you can use this directly.
 

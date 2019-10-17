@@ -1,6 +1,8 @@
 Spark Machine Learning API
 ==========================
 
+[![cljdoc](https://cljdoc.org/badge/amperity/sparkplug-ml)](https://cljdoc.org/d/amperity/sparkplug-ml/CURRENT)
+
 This library provides an API for working with Spark's Machine Learning library.
 
 

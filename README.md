@@ -3,6 +3,7 @@ Clojure Spark API
 
 [![CircleCI](https://circleci.com/gh/amperity/sparkplug.svg?style=shield&circle-token=8222ffae4136dd0fd585c5f2c361ea9426acee8d)](https://circleci.com/gh/amperity/sparkplug)
 [![codecov](https://codecov.io/gh/amperity/sparkplug/branch/master/graph/badge.svg)](https://codecov.io/gh/amperity/sparkplug)
+[![cljdoc](https://cljdoc.org/badge/amperity/sparkplug)](https://cljdoc.org/d/amperity/sparkplug/CURRENT)
 
 SparkPlug is a Clojure API for [Apache Spark](http://spark.apache.org/).
 

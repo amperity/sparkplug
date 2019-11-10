@@ -213,6 +213,12 @@
   (into [] (.partitions (.rdd rdd))))
 
 
+(defn num-partitions
+  "Returns the number of partitions in `rdd`."
+  [^JavaRDDLike rdd]
+  (.getNumPartitions rdd))
+
+
 (defn partitioner
   "Return the partitioner associated with `rdd`, or nil if there is no custom
   partitioner."

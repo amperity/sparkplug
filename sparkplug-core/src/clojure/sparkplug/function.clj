@@ -65,7 +65,7 @@
 (defn namespace-references
   "Walk the given function-like object to find all namespaces referenced by
   closed-over vars. Returns a set of referenced namespace symbols."
-  [obj]
+  [^Object obj]
   (let [;; Attempt to derive the needed Clojure namespace
         ;; from the function's class name.
         obj-ns (-> (.. obj getClass getName)
@@ -73,11 +73,10 @@
                    (str/split #"/")
                    (first)
                    (symbol))
-        references (HashSet. [obj-ns])
+        references (doto (HashSet.) (.add obj-ns))
         visited (HashSet.)]
     (walk-object-vars references visited obj)
-    (disj (set references)
-          'clojure.core)))
+    (disj (set references) 'clojure.core)))
 
 
 ;; ## Function Wrappers

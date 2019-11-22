@@ -1,4 +1,4 @@
-(defproject amperity/sparkplug-core "0.1.3-SNAPSHOT"
+(defproject amperity/sparkplug-core "0.1.4-SNAPSHOT"
   :description "Clojure API for Apache Spark"
   :url "https://github.com/amperity/sparkplug"
   :scm {:dir ".."}
@@ -11,6 +11,7 @@
   [[org.clojure/clojure "1.10.1"]
    [org.clojure/java.classpath "0.3.0"]
    [org.clojure/tools.logging "0.5.0"]
+   [clojure.java-time "0.3.2"]
    [com.twitter/carbonite "1.5.0"
     :exclusions [com.esotericsoftware/kryo
                  com.twitter/chill-java]]

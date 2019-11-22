@@ -16,7 +16,8 @@
       Tuple6
       Tuple7
       Tuple8
-      Tuple9)))
+      Tuple9)
+    (scala.collection Seq JavaConverters)))
 
 
 (defn resolve-option
@@ -161,3 +162,8 @@
     (throw (IllegalArgumentException.
              (str "Cannot coerce unknown type " (.getName (class entry))
                   " to a pair value")))))
+
+
+(defn scala-seq->clj-seq
+  [^Seq scala-seq]
+  (-> scala-seq JavaConverters/asJavaIterable seq))

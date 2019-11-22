@@ -15,6 +15,7 @@ services:
       SPARK_PUBLIC_DNS: localhost
       SPARK_MASTER_PORT: 7077
       SPARK_MASTER_WEBUI_PORT: 8080
+      SPARK_MASTER_OPTS: -Dspark.master.rest.enabled=true
     expose:
       - 6066
       - 7001

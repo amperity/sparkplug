@@ -73,8 +73,13 @@
                    (str/split #"/")
                    (first)
                    (symbol))
-        references (doto (HashSet.) (.add obj-ns))
+        references (HashSet.)
         visited (HashSet.)]
+    ;; When using a piece of data as a function, such as a keyword or set,
+    ;; obj-ns will actually be a class name like `clojure.lang.Keyword`.
+    ;; Avoid marking class names as namespaces to be required.
+    (when-not (class? (resolve obj-ns))
+      (.add references obj-ns))
     (walk-object-vars references visited obj)
     (disj (set references) 'clojure.core)))
 

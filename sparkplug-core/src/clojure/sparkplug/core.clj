@@ -477,6 +477,19 @@
 
 ;; ## Pair RDD Aggregation
 
+(defn aggregate-by-key
+  "When called on an RDD of (K, V) pairs, returns an RDD of (K, U) pairs where
+  the values for each key are aggregated using the given 2-arg aggregator
+  function, 2-arg combiner function, and a neutral zero value. Allows an
+  aggregated value type that is different than the input value type, while
+  avoiding unnecessary allocations. The number of reduce tasks is configurable
+  through an optional second argument."
+  ([aggregator combiner zero ^JavaPairRDD rdd]
+   (.aggregateByKey rdd zero (f/fn2 aggregator) (f/fn2 combiner)))
+  ([aggregator combiner zero ^Integer num-partitions ^JavaPairRDD rdd]
+   (.aggregateByKey rdd zero (f/fn2 aggregator) (f/fn2 combiner) num-partitions)))
+
+
 (defn group-by
   "Group the elements of `rdd` using a key function `f`. Returns a pair RDD
   with each generated key and all matching elements as a value sequence."

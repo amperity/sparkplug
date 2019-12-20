@@ -10,6 +10,7 @@
     [clojure.string :as str]
     [sparkplug.scala :as scala])
   (:import
+    clojure.lang.Compiler
     (org.apache.spark
       HashPartitioner
       Partitioner)
@@ -55,23 +56,16 @@
   (first (remove internal-call? (.getStackTrace (Exception.)))))
 
 
-(defn- unmangle
-  "Given the name of a class that implements a Clojure function, returns the
-  function's name in Clojure.
-
-  If the true Clojure function name contains any underscores (a rare
-  occurrence), the unmangled name will contain hyphens at those locations
-  instead."
-  [classname]
-  (-> classname
-      (str/replace #"^(.+)\$(.+)(|__\d+)$" "$1/$2")
-      (str/replace \_ \-)))
+(defn- demunge
+  "Demunge a class name emitted by the Clojure compiler."
+  [^String classname]
+  (Compiler/demunge classname))
 
 
 (defn ^:no-doc fn-name
   "Return the (unmangled) name of the given Clojure function."
   [f]
-  (unmangle (.getName (class f))))
+  (demunge (.getName (class f))))
 
 
 (defn- callsite-name
@@ -82,7 +76,7 @@
         filename (.getFileName callsite)
         classname (.getClassName callsite)
         line-number (.getLineNumber callsite)]
-    (format "%s %s:%d" (unmangle classname) filename line-number)))
+    (format "%s %s:%d" (demunge classname) filename line-number)))
 
 
 (defn ^:no-doc set-callsite-name

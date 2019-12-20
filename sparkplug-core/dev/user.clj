@@ -16,6 +16,12 @@
     com.esotericsoftware.kryo.Kryo))
 
 
+(def local-conf
+  (-> (conf/spark-conf)
+      (conf/master "local[*]")
+      (conf/app-name "user")))
+
+
 (def spark-context nil)
 
 

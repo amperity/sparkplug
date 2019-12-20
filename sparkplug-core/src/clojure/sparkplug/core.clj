@@ -483,11 +483,23 @@
   function, 2-arg combiner function, and a neutral zero value. Allows an
   aggregated value type that is different than the input value type, while
   avoiding unnecessary allocations. The number of reduce tasks is configurable
-  through an optional second argument."
+  by optionally passing a number of partitions or a partitioner."
   ([aggregator combiner zero ^JavaPairRDD rdd]
    (.aggregateByKey rdd zero (f/fn2 aggregator) (f/fn2 combiner)))
-  ([aggregator combiner zero ^Integer num-partitions ^JavaPairRDD rdd]
-   (.aggregateByKey rdd zero (f/fn2 aggregator) (f/fn2 combiner) num-partitions)))
+  ([aggregator combiner zero partitioner-or-num-partitions ^JavaPairRDD rdd]
+   (if (instance? Partitioner partitioner-or-num-partitions)
+     (.aggregateByKey
+       rdd
+       zero
+       ^Partitioner partitioner-or-num-partitions
+       (f/fn2 aggregator)
+       (f/fn2 combiner))
+     (.aggregateByKey
+       rdd
+       zero
+       (int partitioner-or-num-partitions)
+       (f/fn2 aggregator)
+       (f/fn2 combiner)))))
 
 
 (defn group-by

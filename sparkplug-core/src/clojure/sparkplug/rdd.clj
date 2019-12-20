@@ -56,16 +56,10 @@
   (first (remove internal-call? (.getStackTrace (Exception.)))))
 
 
-(defn- demunge
-  "Demunge a class name emitted by the Clojure compiler."
-  [^String classname]
-  (Compiler/demunge classname))
-
-
 (defn ^:no-doc fn-name
   "Return the (unmangled) name of the given Clojure function."
   [f]
-  (demunge (.getName (class f))))
+  (Compiler/demunge (.getName (class f))))
 
 
 (defn- callsite-name
@@ -76,7 +70,7 @@
         filename (.getFileName callsite)
         classname (.getClassName callsite)
         line-number (.getLineNumber callsite)]
-    (format "%s %s:%d" (demunge classname) filename line-number)))
+    (format "%s %s:%d" (Compiler/demunge classname) filename line-number)))
 
 
 (defn ^:no-doc set-callsite-name

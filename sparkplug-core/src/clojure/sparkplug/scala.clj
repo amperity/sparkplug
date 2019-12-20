@@ -1,5 +1,6 @@
 (ns sparkplug.scala
   "Commonly used utilities for interop with Scala objects."
+  (:refer-clojure :exclude [first second])
   (:require
     [clojure.walk :as walk])
   (:import
@@ -151,7 +152,7 @@
     ;; Try to generically coerce a vector result.
     (vector? entry)
     (if (= 2 (count entry))
-      (Tuple2. (first entry) (second entry))
+      (Tuple2. (clojure.core/first entry) (clojure.core/second entry))
       (throw (IllegalArgumentException.
                (str "Cannot coerce a vector with " (count entry)
                     " elements to a pair value"))))
@@ -161,3 +162,15 @@
     (throw (IllegalArgumentException.
              (str "Cannot coerce unknown type " (.getName (class entry))
                   " to a pair value")))))
+
+
+(defn first
+  "Get the first element of a Scala pair."
+  [^Tuple2 t]
+  (._1 t))
+
+
+(defn second
+  "Get the second element of a Scala pair."
+  [^Tuple2 t]
+  (._2 t))

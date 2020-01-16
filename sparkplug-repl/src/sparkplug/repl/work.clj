@@ -11,7 +11,11 @@
     [sparkplug.function :as f]
     [sparkplug.kryo :as kryo]
     [sparkplug.rdd :as rdd]
-    [sparkplug.scala :as scala]))
+    [sparkplug.repl.mor-poc :as mor]
+    [sparkplug.repl.mor-rdd :as mor-rdd]
+    [sparkplug.scala :as scala])
+  (:import
+    org.apache.spark.sql.hive.HiveContext))
 
 
 (def spark-context

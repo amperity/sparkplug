@@ -3,10 +3,10 @@
     [amperity.common.util :as util]
     [sparkplug.scala :as scala]
     [sparkplug.rdd :as rdd]
-    [sparkplug.core :as spark])
+    [sparkplug.core :as spark]
+    [sparkplug.repl.mor-rdd :as mor-rdd])
   (:import
     (org.apache.spark.sql
-      Row
       RowFactory)
     (org.apache.spark.sql.types
       DataTypes
@@ -15,7 +15,8 @@
       StructType)
     (scala Tuple2)
     (org.apache.spark.sql.hive HiveContext)
-    (org.apache.spark.api.java JavaRDDLike)))
+    (org.apache.spark.api.java JavaPairRDD JavaSparkContext)
+    (sparkplug.repl.mor-rdd MorRDD)))
 
 
 (defn- make-str
@@ -43,6 +44,33 @@
    (->> (range)
         (map (partial make-row str-len str-count int-count))
         (take row-count))))
+
+
+(defn generate-data
+  [{:keys [pk-fn ts-fn field-fns]} indices]
+  (let [generate-row (fn
+                       [index]
+                       (merge
+                         {:pk (pk-fn index)
+                          :ts (ts-fn index)}
+                         (util/map-vals #(% index) field-fns)))]
+    (map generate-row indices)))
+
+
+(def historical-data
+  (generate-data {:pk-fn (partial make-str 8)
+                  :ts-fn (constantly 1579132800)
+                  :field-fns {:string-field (partial make-str 8)
+                              :numeric-field #(+ 10 %)}}
+                 (range 1000000)))
+
+
+(def ingest-data
+  (generate-data {:pk-fn (partial make-str 8)
+                  :ts-fn (constantly 1579219200)
+                  :field-fns {:string-field (partial make-str 8)
+                              :numeric-field #(+ 20 %)}}
+                 (take-while #(< % 1000000) (iterate #(+ 113 %) 0))))
 
 
 (defn- struct-field
@@ -105,3 +133,28 @@
 (defn write-df!
   [df path]
   (.. df (write) (format "orc") (save path)))
+
+
+
+;; ## Merge-on-Read RDD Construction
+
+;; TODO: Validate that all input RDDs:
+;;
+;; * Have the same Partitioner
+;; * Have the same number of partitions
+;; * Are JavaPairRDDs
+(defn build
+  [spark-ctx parents]
+  ;; FIXME: private fn access
+  (let [sc (.sc ^JavaSparkContext spark-ctx)]
+    ;; Implementation note (KML 20200117): I had to move this call out of the mor-rdd ns
+    ;; because IntelliJ was complaining that the class MorRDD could not be found. Might
+    ;; need to do some more investigation to figure out how to address this.
+    (-> (MorRDD.
+          (.sc ^JavaSparkContext spark-ctx)
+          parents)
+        (JavaPairRDD/fromRDD
+          (mor-rdd/class-tag Object)
+          (mor-rdd/class-tag Object))
+        ;; TODO: Populate name more usefully.
+        (.setName "MorRDD"))))

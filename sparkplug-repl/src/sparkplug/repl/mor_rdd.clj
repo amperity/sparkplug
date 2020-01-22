@@ -15,25 +15,23 @@
     [clojure.tools.logging :as log]
     [sparkplug.scala :as scala])
   (:import
-    clojure.lang.ILookup
     (org.apache.spark
       Partition
       TaskContext
       OneToOneDependency)
     (org.apache.spark.api.java
-      JavaPairRDD
-      JavaSparkContext)
+      JavaPairRDD)
     org.apache.spark.rdd.RDD
     scala.collection.JavaConversions
     scala.collection.mutable.ArrayBuffer
     scala.reflect.ClassManifestFactory$
-    (sparkplug.repl.mor-rdd MorRDD)))
+    sparkplug.repl.mor-rdd.MorRDD))
 
 
 
 ;; ## Partition Scan
 
-(defn- class-tag
+(defn class-tag
   "Generates a Scala `ClassTag` for the given class."
   [^Class cls]
   (.fromClass ClassManifestFactory$/MODULE$ cls))
@@ -66,7 +64,6 @@
 
 (defn- merge-seqs
   [s1 s2]
-  (println "merge-seqs:" s1 s2)
   (let [first-key #(scala/first (first %))]
     (lazy-seq
       (cond
@@ -104,25 +101,3 @@
       (apply merge-seqs)
       (.iterator)
       (JavaConversions/asScalaIterator))))
-
-
-
-;; ## RDD Construction
-
-;; TODO: Validate that all input RDDs:
-;;
-;; * Have the same Partitioner
-;; * Have the same number of partitions
-;; * Are JavaPairRDDs
-(defn build
-  [spark-ctx parents]
-  ;; FIXME: private fn access
-  (let [sc (.sc ^JavaSparkContext spark-ctx)]
-    (-> (MorRDD.
-          (.sc ^JavaSparkContext spark-ctx)
-          parents)
-        (JavaPairRDD/fromRDD
-          (class-tag Object)
-          (class-tag Object))
-        ;; TODO: Populate name more usefully.
-        (.setName "MorRDD"))))

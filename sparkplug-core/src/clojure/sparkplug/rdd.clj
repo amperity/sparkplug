@@ -8,6 +8,7 @@
   (:refer-clojure :exclude [empty name partition-by])
   (:require
     [clojure.string :as str]
+    [sparkplug.function :as f]
     [sparkplug.scala :as scala])
   (:import
     clojure.lang.Compiler
@@ -19,7 +20,8 @@
       JavaRDD
       JavaRDDLike
       JavaSparkContext
-      StorageLevels)))
+      StorageLevels)
+    sparkplug.partition.FnHashPartitioner))
 
 
 ;; ## Naming Functions
@@ -188,11 +190,7 @@
    (HashPartitioner. n))
   ^HashPartitioner
   ([key-fn n]
-   (proxy [HashPartitioner] [n]
-     (getPartition
-       [k]
-       (let [k' (key-fn k)]
-         (mod (hash k') n))))))
+   (FnHashPartitioner. (int n) (f/fn1 key-fn))))
 
 
 (defn partitions

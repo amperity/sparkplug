@@ -185,10 +185,10 @@
   "Construct a partitioner which will hash keys to distribute them uniformly
   over `n` buckets. Optionally accepts a `key-fn` which will be called on each
   key before hashing it."
-  ^HashPartitioner
+  ^Partitioner
   ([n]
    (HashPartitioner. n))
-  ^HashPartitioner
+  ^Partitioner
   ([key-fn n]
    (FnHashPartitioner. (int n) (f/fn1 key-fn))))
 

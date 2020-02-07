@@ -237,6 +237,18 @@
     (int n)))
 
 
+(defn repartition-and-sort-within-partitions
+  "Repartition the RDD according to the given partitioner and, within each
+  resulting partition, sort records by their keys. This is more efficient than
+  calling repartition and then sorting within each partition because it can
+  push the sorting down into the shuffle machinery."
+  ^JavaPairRDD
+  ([^Partitioner partitioner ^JavaPairRDD pair-rdd]
+   (.repartitionAndSortWithinPartitions pair-rdd partitioner))
+  ([^Partitioner partitioner ^java.util.Comparator comparator ^JavaPairRDD pair-rdd]
+   (.repartitionAndSortWithinPartitions pair-rdd partitioner comparator)))
+
+
 ;; Type hints are omitted because `coalesce` is not included in JavaRDDLike.
 (defn coalesce
   "Decrease the number of partitions in `rdd` to `n`. Useful for running

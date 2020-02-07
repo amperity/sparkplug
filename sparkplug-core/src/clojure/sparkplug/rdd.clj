@@ -8,6 +8,7 @@
   (:refer-clojure :exclude [empty name partition-by])
   (:require
     [clojure.string :as str]
+    [sparkplug.function :as f]
     [sparkplug.scala :as scala])
   (:import
     clojure.lang.Compiler
@@ -19,7 +20,8 @@
       JavaRDD
       JavaRDDLike
       JavaSparkContext
-      StorageLevels)))
+      StorageLevels)
+    sparkplug.partition.FnHashPartitioner))
 
 
 ;; ## Naming Functions
@@ -183,16 +185,12 @@
   "Construct a partitioner which will hash keys to distribute them uniformly
   over `n` buckets. Optionally accepts a `key-fn` which will be called on each
   key before hashing it."
-  ^HashPartitioner
-  ([n]
-   (HashPartitioner. n))
-  ^HashPartitioner
-  ([key-fn n]
-   (proxy [HashPartitioner] [n]
-     (getPartition
-       [k]
-       (let [k' (key-fn k)]
-         (mod (hash k') n))))))
+  (^Partitioner
+   [n]
+   (HashPartitioner. (int n)))
+  (^Partitioner
+   [key-fn n]
+   (FnHashPartitioner. (int n) (f/fn1 key-fn))))
 
 
 (defn partitions
@@ -237,6 +235,18 @@
   (set-callsite-name
     (.repartition rdd (int n))
     (int n)))
+
+
+(defn repartition-and-sort-within-partitions
+  "Repartition the RDD according to the given partitioner and, within each
+  resulting partition, sort records by their keys. This is more efficient than
+  calling repartition and then sorting within each partition because it can
+  push the sorting down into the shuffle machinery."
+  ^JavaPairRDD
+  ([^Partitioner partitioner ^JavaPairRDD pair-rdd]
+   (.repartitionAndSortWithinPartitions pair-rdd partitioner))
+  ([^Partitioner partitioner ^java.util.Comparator comparator ^JavaPairRDD pair-rdd]
+   (.repartitionAndSortWithinPartitions pair-rdd partitioner comparator)))
 
 
 ;; Type hints are omitted because `coalesce` is not included in JavaRDDLike.

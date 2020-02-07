@@ -463,14 +463,14 @@
   ^JavaPairRDD
   ([^JavaPairRDD rdd1 ^JavaPairRDD rdd2]
    (rdd/set-callsite-name
-     (.rightOuterJoin rdd1 rdd2)))
+     (.fullOuterJoin rdd1 rdd2)))
   ([^JavaPairRDD rdd1 ^JavaPairRDD rdd2 partitions]
    (if (instance? Partitioner partitions)
      (rdd/set-callsite-name
-       (.rightOuterJoin rdd1 rdd2 ^Partitioner partitions)
+       (.fullOuterJoin rdd1 rdd2 ^Partitioner partitions)
        (class partitions))
      (rdd/set-callsite-name
-       (.rightOuterJoin rdd1 rdd2 (int partitions))
+       (.fullOuterJoin rdd1 rdd2 (int partitions))
        (int partitions)))))
 
 

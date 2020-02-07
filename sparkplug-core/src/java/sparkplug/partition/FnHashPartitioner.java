@@ -1,5 +1,6 @@
 package sparkplug.partition;
 
+import static clojure.lang.Util.hasheq;
 import org.apache.spark.Partitioner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,7 +46,7 @@ public class FnHashPartitioner extends Partitioner {
                          + " This is likely to cause skewed partitioning.", e);
         }
 
-        return Math.floorMod(clojure.lang.Util.hasheq(transformedKey), this.numPartitions);
+        return Math.floorMod(hasheq(transformedKey), this.numPartitions);
     }
 
 }

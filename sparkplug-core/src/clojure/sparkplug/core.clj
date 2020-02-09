@@ -20,6 +20,7 @@
       JavaRDD
       JavaRDDLike
       JavaSparkContext)
+    org.apache.spark.broadcast.Broadcast
     sparkplug.broadcast.DerefBroadcast))
 
 
@@ -32,6 +33,7 @@
 
   The returned broadcast value can be resolved with `deref` or the `@` reader
   macro."
+  ^Broadcast
   [^JavaSparkContext spark-context value]
   (let [broadcast (.broadcast spark-context value)]
     (DerefBroadcast. broadcast (class value))))
@@ -76,11 +78,11 @@
   results. Returns an RDD representing the concatenation of all the partition
   results. The function will be called with an iterator of the elements of each
   partition."
-  ^JavaRDDLike
-  ([f ^JavaRDDLike rdd]
+  (^JavaRDDLike
+   [f ^JavaRDDLike rdd]
    (map-partitions f false rdd))
-  ^JavaRDDLike
-  ([f preserve-partitioning? ^JavaRDDLike rdd]
+  (^JavaRDDLike
+   [f preserve-partitioning? ^JavaRDDLike rdd]
    (rdd/set-callsite-name
      (.mapPartitions
        rdd
@@ -106,12 +108,12 @@
   "Construct an RDD containing only a single copy of each distinct element in
   `rdd`. Optionally accepts a number of partitions to size the resulting RDD
   with."
-  ^JavaRDDLike
-  ([rdd]
+  (^JavaRDDLike
+   [rdd]
    (rdd/set-callsite-name
      (.distinct rdd)))
-  ^JavaRDDLike
-  ([num-partitions rdd]
+  (^JavaRDDLike
+   [num-partitions rdd]
    (rdd/set-callsite-name
      (.distinct rdd (int num-partitions))
      (int num-partitions))))
@@ -122,19 +124,19 @@
   "Generate a randomly sampled subset of `rdd` with roughly `fraction` of the
   original elements. Callers can optionally select whether the sample happens
   with replacement, and a random seed to control the sample."
-  ^JavaRDDLike
-  ([fraction rdd]
+  (^JavaRDDLike
+   [fraction rdd]
    (rdd/set-callsite-name
      (.sample rdd true (double fraction))
      (double fraction)))
-  ^JavaRDDLike
-  ([fraction replacement? rdd]
+  (^JavaRDDLike
+   [fraction replacement? rdd]
    (rdd/set-callsite-name
      (.sample rdd (boolean replacement?) (double fraction))
      (double fraction)
      (boolean replacement?)))
-  ^JavaRDDLike
-  ([fraction replacement? seed rdd]
+  (^JavaRDDLike
+   [fraction replacement? seed rdd]
    (rdd/set-callsite-name
      (.sample rdd (boolean replacement?) (double fraction) (long seed))
      (double fraction)
@@ -196,11 +198,11 @@
   "Map the function `f` over each partition in `rdd`, producing a sequence of
   key-value pairs. The function will be called with an iterator of the elements
   of the partition."
-  ^JavaPairRDD
-  ([f ^JavaRDDLike rdd]
+  (^JavaPairRDD
+   [f ^JavaRDDLike rdd]
    (map-partitions->pairs f false rdd))
-  ^JavaPairRDD
-  ([f preserve-partitioning? ^JavaRDDLike rdd]
+  (^JavaPairRDD
+   [f preserve-partitioning? ^JavaRDDLike rdd]
    (rdd/set-callsite-name
      (.mapPartitionsToPair
        rdd
@@ -322,16 +324,16 @@
 
   If the input RDDs have types `(K, A)`, `(K, B)`, and `(K, C)`, the grouped
   RDD will have type `(K, (list(A), list(B), list(C)))`."
-  ^JavaPairRDD
-  ([^JavaPairRDD rdd1 ^JavaPairRDD rdd2]
+  (^JavaPairRDD
+   [^JavaPairRDD rdd1 ^JavaPairRDD rdd2]
    (rdd/set-callsite-name
      (.cogroup rdd1 rdd2)))
-  ^JavaPairRDD
-  ([^JavaPairRDD rdd1 ^JavaPairRDD rdd2 ^JavaPairRDD rdd3]
+  (^JavaPairRDD
+   [^JavaPairRDD rdd1 ^JavaPairRDD rdd2 ^JavaPairRDD rdd3]
    (rdd/set-callsite-name
      (.cogroup rdd1 rdd2 rdd3)))
-  ^JavaPairRDD
-  ([^JavaPairRDD rdd1 ^JavaPairRDD rdd2 ^JavaPairRDD rdd3 ^JavaPairRDD rdd4]
+  (^JavaPairRDD
+   [^JavaPairRDD rdd1 ^JavaPairRDD rdd2 ^JavaPairRDD rdd3 ^JavaPairRDD rdd4]
    (rdd/set-callsite-name
      (.cogroup rdd1 rdd2 rdd3 rdd4))))
 
@@ -344,8 +346,8 @@
 
   If the input RDDs have types `(K, A)`, `(K, B)`, and `(K, C)`, the grouped
   RDD will have type `(K, (List(A), List(B), List(C)))`."
-  ^JavaPairRDD
-  ([^JavaPairRDD rdd1 ^JavaPairRDD rdd2 partitions]
+  (^JavaPairRDD
+   [^JavaPairRDD rdd1 ^JavaPairRDD rdd2 partitions]
    (if (instance? Partitioner partitions)
      (rdd/set-callsite-name
        (.cogroup rdd1 rdd2 ^Partitioner partitions)
@@ -353,8 +355,8 @@
      (rdd/set-callsite-name
        (.cogroup rdd1 rdd2 (int partitions))
        (int partitions))))
-  ^JavaPairRDD
-  ([^JavaPairRDD rdd1 ^JavaPairRDD rdd2 ^JavaPairRDD rdd3 partitions]
+  (^JavaPairRDD
+   [^JavaPairRDD rdd1 ^JavaPairRDD rdd2 ^JavaPairRDD rdd3 partitions]
    (if (instance? Partitioner partitions)
      (rdd/set-callsite-name
        (.cogroup rdd1 rdd2 rdd3 ^Partitioner partitions)
@@ -362,8 +364,8 @@
      (rdd/set-callsite-name
        (.cogroup rdd1 rdd2 rdd3 (int partitions))
        (int partitions))))
-  ^JavaPairRDD
-  ([^JavaPairRDD rdd1
+  (^JavaPairRDD
+   [^JavaPairRDD rdd1
     ^JavaPairRDD rdd2
     ^JavaPairRDD rdd3
     ^JavaPairRDD rdd4
@@ -385,11 +387,12 @@
   Performs a hash join across the cluster. Optionally, `partitions` may be
   provided as an integer number or a partitioner instance to control the
   partitioning of the resulting RDD."
-  ^JavaPairRDD
-  ([^JavaPairRDD rdd1 ^JavaPairRDD rdd2]
+  (^JavaPairRDD
+   [^JavaPairRDD rdd1 ^JavaPairRDD rdd2]
    (rdd/set-callsite-name
      (.join rdd1 rdd2)))
-  ([^JavaPairRDD rdd1 ^JavaPairRDD rdd2 partitions]
+  (^JavaPairRDD
+   [^JavaPairRDD rdd1 ^JavaPairRDD rdd2 partitions]
    (if (instance? Partitioner partitions)
      (rdd/set-callsite-name
        (.join rdd1 rdd2 ^Partitioner partitions)
@@ -409,11 +412,12 @@
   Hash-partitions the resulting RDD using the existing partitioner/parallelism
   level unless `partitions` is be provided as an integer number or a
   partitioner instance."
-  ^JavaPairRDD
-  ([^JavaPairRDD rdd1 ^JavaPairRDD rdd2]
+  (^JavaPairRDD
+   [^JavaPairRDD rdd1 ^JavaPairRDD rdd2]
    (rdd/set-callsite-name
      (.leftOuterJoin rdd1 rdd2)))
-  ([^JavaPairRDD rdd1 ^JavaPairRDD rdd2 partitions]
+  (^JavaPairRDD
+   [^JavaPairRDD rdd1 ^JavaPairRDD rdd2 partitions]
    (if (instance? Partitioner partitions)
      (rdd/set-callsite-name
        (.leftOuterJoin rdd1 rdd2 ^Partitioner partitions)
@@ -433,11 +437,12 @@
   Hash-partitions the resulting RDD using the existing partitioner/parallelism
   level unless `partitions` is be provided as an integer number or a
   partitioner instance."
-  ^JavaPairRDD
-  ([^JavaPairRDD rdd1 ^JavaPairRDD rdd2]
+  (^JavaPairRDD
+   [^JavaPairRDD rdd1 ^JavaPairRDD rdd2]
    (rdd/set-callsite-name
      (.rightOuterJoin rdd1 rdd2)))
-  ([^JavaPairRDD rdd1 ^JavaPairRDD rdd2 partitions]
+  (^JavaPairRDD
+   [^JavaPairRDD rdd1 ^JavaPairRDD rdd2 partitions]
    (if (instance? Partitioner partitions)
      (rdd/set-callsite-name
        (.rightOuterJoin rdd1 rdd2 ^Partitioner partitions)
@@ -460,11 +465,12 @@
   Hash-partitions the resulting RDD using the existing partitioner/parallelism
   level unless `partitions` is be provided as an integer number or a
   partitioner instance."
-  ^JavaPairRDD
-  ([^JavaPairRDD rdd1 ^JavaPairRDD rdd2]
+  (^JavaPairRDD
+   [^JavaPairRDD rdd1 ^JavaPairRDD rdd2]
    (rdd/set-callsite-name
      (.fullOuterJoin rdd1 rdd2)))
-  ([^JavaPairRDD rdd1 ^JavaPairRDD rdd2 partitions]
+  (^JavaPairRDD
+   [^JavaPairRDD rdd1 ^JavaPairRDD rdd2 partitions]
    (if (instance? Partitioner partitions)
      (rdd/set-callsite-name
        (.fullOuterJoin rdd1 rdd2 ^Partitioner partitions)
@@ -484,9 +490,11 @@
   aggregated value type that is different than the input value type, while
   avoiding unnecessary allocations. The number of reduce tasks is configurable
   by optionally passing a number of partitions or a partitioner."
-  ([aggregator combiner zero ^JavaPairRDD rdd]
+  (^JavaPairRDD
+   [aggregator combiner zero ^JavaPairRDD rdd]
    (.aggregateByKey rdd zero (f/fn2 aggregator) (f/fn2 combiner)))
-  ([aggregator combiner zero partitioner-or-num-partitions ^JavaPairRDD rdd]
+  (^JavaPairRDD
+   [aggregator combiner zero partitioner-or-num-partitions ^JavaPairRDD rdd]
    (if (instance? Partitioner partitioner-or-num-partitions)
      (.aggregateByKey
        rdd
@@ -505,13 +513,13 @@
 (defn group-by
   "Group the elements of `rdd` using a key function `f`. Returns a pair RDD
   with each generated key and all matching elements as a value sequence."
-  ^JavaPairRDD
-  ([f ^JavaRDDLike rdd]
+  (^JavaPairRDD
+   [f ^JavaRDDLike rdd]
    (rdd/set-callsite-name
      (.groupBy rdd (f/fn1 f))
      (rdd/fn-name f)))
-  ^JavaPairRDD
-  ([f num-partitions ^JavaRDDLike rdd]
+  (^JavaPairRDD
+   [f num-partitions ^JavaRDDLike rdd]
    (rdd/set-callsite-name
      (.groupBy rdd (f/fn1 f) (int num-partitions))
      (rdd/fn-name f)
@@ -521,12 +529,12 @@
 (defn group-by-key
   "Group the entries in the pair `rdd` by key. Returns a new pair RDD with one
   entry per key, containing all of the matching values as a sequence."
-  ^JavaPairRDD
-  ([^JavaPairRDD rdd]
+  (^JavaPairRDD
+   [^JavaPairRDD rdd]
    (rdd/set-callsite-name
      (.groupByKey rdd)))
-  ^JavaPairRDD
-  ([num-partitions ^JavaPairRDD rdd]
+  (^JavaPairRDD
+   [num-partitions ^JavaPairRDD rdd]
    (rdd/set-callsite-name
      (.groupByKey rdd (int num-partitions))
      num-partitions)))
@@ -551,8 +559,8 @@
   - `seq-fn` which turns a V into a C (for example, `vector`)
   - `conj-fn` to add a V to a C (for example, `conj`)
   - `merge-fn` to combine two C's into a single result"
-  ^JavaPairRDD
-  ([seq-fn conj-fn merge-fn ^JavaPairRDD rdd]
+  (^JavaPairRDD
+   [seq-fn conj-fn merge-fn ^JavaPairRDD rdd]
    (rdd/set-callsite-name
      (.combineByKey rdd
                     (f/fn1 seq-fn)
@@ -561,8 +569,8 @@
      (rdd/fn-name seq-fn)
      (rdd/fn-name conj-fn)
      (rdd/fn-name merge-fn)))
-  ^JavaPairRDD
-  ([seq-fn conj-fn merge-fn num-partitions ^JavaPairRDD rdd]
+  (^JavaPairRDD
+   [seq-fn conj-fn merge-fn num-partitions ^JavaPairRDD rdd]
    (rdd/set-callsite-name
      (.combineByKey rdd
                     (f/fn1 seq-fn)
@@ -579,25 +587,25 @@
   "Reorder the elements of `rdd` so that they are sorted according to their
   natural order or the given comparator `f` if provided. The result may be
   ordered ascending or descending, depending on `ascending?`."
-  ^JavaPairRDD
-  ([^JavaPairRDD rdd]
+  (^JavaPairRDD
+   [^JavaPairRDD rdd]
    (rdd/set-callsite-name
      (.sortByKey rdd true)))
-  ^JavaPairRDD
-  ([ascending? ^JavaPairRDD rdd]
+  (^JavaPairRDD
+   [ascending? ^JavaPairRDD rdd]
    (rdd/set-callsite-name
      (.sortByKey rdd (boolean ascending?))
      (boolean ascending?)))
-  ^JavaPairRDD
-  ([compare-fn ascending? ^JavaPairRDD rdd]
+  (^JavaPairRDD
+   [compare-fn ascending? ^JavaPairRDD rdd]
    (rdd/set-callsite-name
      (.sortByKey rdd
                  (f/comparator-fn compare-fn)
                  (boolean ascending?))
      (rdd/fn-name compare-fn)
      (boolean ascending?)))
-  ^JavaPairRDD
-  ([compare-fn ascending? num-partitions ^JavaPairRDD rdd]
+  (^JavaPairRDD
+   [compare-fn ascending? num-partitions ^JavaPairRDD rdd]
    (rdd/set-callsite-name
      (.sortByKey rdd
                  (f/comparator-fn compare-fn)

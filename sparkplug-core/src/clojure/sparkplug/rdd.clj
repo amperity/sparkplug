@@ -99,19 +99,19 @@
 (defn empty
   "Construct a new empty RDD."
   ^JavaRDD
-  ([^JavaSparkContext spark-context]
-   (.emptyRDD spark-context)))
+  [^JavaSparkContext spark-context]
+  (.emptyRDD spark-context))
 
 
 (defn parallelize
   "Distribute a local collection to form an RDD. Optionally accepts a number
   of partitions to slice the collection into."
-  ^JavaRDD
-  ([^JavaSparkContext spark-context coll]
+  (^JavaRDD
+   [^JavaSparkContext spark-context coll]
    (set-callsite-name
      (.parallelize spark-context coll)))
-  ^JavaRDD
-  ([^JavaSparkContext spark-context min-partitions coll]
+  (^JavaRDD
+   [^JavaSparkContext spark-context min-partitions coll]
    (set-callsite-name
      (.parallelize spark-context coll min-partitions)
      min-partitions)))
@@ -161,11 +161,11 @@
 (defn whole-text-files
   "Read a directory of text files from a URL into an RDD. Each element of the
   RDD is a pair of the file path and the full contents of the file."
-  ^JavaPairRDD
-  ([^JavaSparkContext spark-context filename]
+  (^JavaPairRDD
+   [^JavaSparkContext spark-context filename]
    (.wholeTextFiles spark-context filename))
-  ^JavaPairRDD
-  ([^JavaSparkContext spark-context min-partitions filename]
+  (^JavaPairRDD
+   [^JavaSparkContext spark-context min-partitions filename]
    (.wholeTextFiles spark-context filename min-partitions)))
 
 
@@ -242,10 +242,11 @@
   resulting partition, sort records by their keys. This is more efficient than
   calling repartition and then sorting within each partition because it can
   push the sorting down into the shuffle machinery."
-  ^JavaPairRDD
-  ([^Partitioner partitioner ^JavaPairRDD pair-rdd]
+  (^JavaPairRDD
+   [^Partitioner partitioner ^JavaPairRDD pair-rdd]
    (.repartitionAndSortWithinPartitions pair-rdd partitioner))
-  ([^Partitioner partitioner ^java.util.Comparator comparator ^JavaPairRDD pair-rdd]
+  (^JavaPairRDD
+   [^Partitioner partitioner ^java.util.Comparator comparator ^JavaPairRDD pair-rdd]
    (.repartitionAndSortWithinPartitions pair-rdd partitioner comparator)))
 
 

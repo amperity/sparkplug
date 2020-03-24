@@ -22,5 +22,7 @@ RUN wget https://archive.apache.org/dist/spark/spark-${SPARK_VERSION}/spark-${SP
 
 ENV SPARK_HOME /opt/spark
 
+RUN mkdir -p /tmp/spark-events
+
 ADD entry.sh /opt
 ENTRYPOINT ["/opt/entry.sh"]

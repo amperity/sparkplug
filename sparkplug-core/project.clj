@@ -9,11 +9,8 @@
 
   :dependencies
   [[org.clojure/clojure "1.10.1"]
-   [org.clojure/java.classpath "0.3.0"]
-   [org.clojure/tools.logging "0.5.0"]
-   [com.twitter/carbonite "1.5.0"
-    :exclusions [com.esotericsoftware/kryo
-                 com.twitter/chill-java]]
+   [org.clojure/java.classpath "1.0.0"]
+   [org.clojure/tools.logging "1.0.0"]
 
    ;; Version conflicts
    [commons-codec "1.10"]

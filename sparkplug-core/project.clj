@@ -29,22 +29,12 @@
    :dev
    {:jvm-opts ["-server" "-Xmx2g"]
     :dependencies
-    [[org.clojure/test.check "0.10.0"]]}
+    [[org.clojure/test.check "1.0.0"]]}
 
    :repl
    {:source-paths ["dev"]
     :dependencies
-    [[org.clojure/tools.namespace "0.2.11"]]}
-
-   :spark-2.2
-   ^{:pom-scope :provided}
-   {:dependencies
-    [[org.apache.spark/spark-core_2.10 "2.2.3"]]}
-
-   :spark-2.3
-   ^{:pom-scope :provided}
-   {:dependencies
-    [[org.apache.spark/spark-core_2.11 "2.3.4"]]}
+    [[org.clojure/tools.namespace "1.0.0"]]}
 
    :spark-2.4
    ^{:pom-scope :provided}

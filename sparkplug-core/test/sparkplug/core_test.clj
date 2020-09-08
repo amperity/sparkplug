@@ -40,4 +40,13 @@
     (is (= [[1 (reduce + (range 10))]]
            (->> (rdd/parallelize-pairs *sc* (map vector (repeat 10 1) (range 10)))
                 (spark/aggregate-by-key + + 0 (rdd/hash-partitioner 2))
+                (spark/into [])))))
+
+  (testing "sort-by"
+    (is (= (vec (reverse (range 10)))
+           (->> (rdd/parallelize *sc* (shuffle (range 10)))
+                (spark/sort-by -)
+                (spark/into []))
+           (->> (rdd/parallelize *sc* (shuffle (range 10)))
+                (spark/sort-by identity false)
                 (spark/into []))))))

@@ -6,7 +6,7 @@
   thread-last macro (`->>`), making it simple to migrate existing Clojure
   code."
   (:refer-clojure :exclude [count distinct filter first group-by into keys map
-                            mapcat max min reduce take vals])
+                            mapcat max min reduce sort-by take vals])
   (:require
     [clojure.core :as c]
     [clojure.tools.logging :as log]
@@ -143,6 +143,27 @@
      (boolean replacement?)
      (long seed))))
 
+
+(defn sort-by
+  "Reorder the elements of `rdd` so that they are sorted according to the given
+  key function. The result may be ordered ascending or descending, depending on
+  `ascending?`."
+  (^JavaRDD
+   [f ^JavaRDD rdd]
+   (sort-by f true rdd))
+  (^JavaRDD
+   [f ascending? ^JavaRDD rdd]
+   (sort-by f ascending? (.getNumPartitions rdd) rdd))
+  (^JavaRDD
+   [f ascending? num-partitions ^JavaRDD rdd]
+   (rdd/set-callsite-name
+     (.sortBy rdd
+              (f/fn1 f)
+              (boolean ascending?)
+              num-partitions)
+     (rdd/fn-name f)
+     (boolean ascending?)
+     (int num-partitions))))
 
 
 ;; ## Pair RDD Transformations

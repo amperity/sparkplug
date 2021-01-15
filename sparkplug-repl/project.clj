@@ -25,11 +25,13 @@
      :init-ns sparkplug.repl.work}}
 
    :spark-2.4
+   ^{:pom-scope :provided}
    {:dependencies
     [[org.apache.spark/spark-core_2.12 "2.4.4"]
      [org.apache.spark/spark-sql_2.12 "2.4.4"]]}
 
    :spark-3.0
+   ^{:pom-scope :provided}
    {:dependencies
     [[org.apache.spark/spark-core_2.12 "3.0.1"]
      [org.apache.spark/spark-sql_2.12 "3.0.1"]]}

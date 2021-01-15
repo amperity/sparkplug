@@ -101,6 +101,7 @@ workflows:
     jobs:
       - style
       - test
+      - test-spark-3-java-11
       - coverage:
           requires:
             - test

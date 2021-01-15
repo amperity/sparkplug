@@ -12,7 +12,6 @@ executors:
     working_directory: ~/repo
 
 
-
 # Job definitions
 jobs:
   style:
@@ -81,7 +80,7 @@ jobs:
           command: lein monolith each install
       - run:
           name: Generate coverage
-          command: lein monolith with-all cloverage --codecov
+          command: lein monolith each :in sparkplug-core with-profile +spark-2.4 cloverage --codecov
       - save_cache:
           key: v1-coverage-{{ checksum "project.clj" }}
           paths:

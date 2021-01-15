@@ -10,18 +10,29 @@
   :dependencies
   [[org.clojure/clojure "1.10.1"]
    [amperity/sparkplug-core "0.1.6-SNAPSHOT"]
-   [org.apache.spark/spark-core_2.12 "2.4.4"]
-   [org.apache.spark/spark-sql_2.12 "2.4.4"]
    [mvxcvi/whidbey "2.1.1"]
    [nrepl "0.6.0"]]
 
   :main sparkplug.repl.main
 
   :profiles
-  {:repl
+  {:default
+   [:base :system :user :provided :spark-2.4 :dev]
+
+   :repl
    {:repl-options
     {:custom-init (whidbey.repl/update-print-fn!)
      :init-ns sparkplug.repl.work}}
+
+   :spark-2.4
+   {:dependencies
+    [[org.apache.spark/spark-core_2.12 "2.4.4"]
+     [org.apache.spark/spark-sql_2.12 "2.4.4"]]}
+
+   :spark-3.0
+   {:dependencies
+    [[org.apache.spark/spark-core_2.12 "3.0.1"]
+     [org.apache.spark/spark-sql_2.12 "3.0.1"]]}
 
    :uberjar
    {:target-path "target/uberjar"

@@ -29,6 +29,9 @@
     :dependencies
     [[org.clojure/tools.namespace "1.0.0"]]}
 
+   :test
+   {:jvm-opts ["-XX:-OmitStackTraceInFastThrow"]}
+
    :spark-2.4
    ^{:pom-scope :provided}
    {:dependencies

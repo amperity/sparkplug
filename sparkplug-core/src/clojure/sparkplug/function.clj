@@ -24,7 +24,7 @@
         (.setAccessible field true))
       (.get field obj)
       (catch Exception e
-        (log/trace "Failed to access field %s: %s" field (class e))
+        (log/tracef "Failed to access field %s: %s" field (class e))
         nil))))
 
 

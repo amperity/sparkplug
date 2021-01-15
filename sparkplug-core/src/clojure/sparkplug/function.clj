@@ -77,9 +77,8 @@
       ;; For collection-like objects, (e.g. vectors, maps, records, Java collections),
       ;; just traverse the objects they contain.
       (seqable? obj)
-      (do
-        (doseq [entry obj]
-          (walk-object-refs references visited entry)))
+      (doseq [entry obj]
+        (walk-object-refs references visited entry))
 
       ;; Otherwise, reflectively traverse the fields of the object for more references.
       :else

@@ -4,11 +4,11 @@ version: 2.1
 executors:
   clojure:
     docker:
-      - image: circleci/clojure:openjdk-8-lein-2.9.1
+      - image: circleci/clojure:openjdk-8-lein-2.9.4
     working_directory: ~/repo
   clojure-java-11:
     docker:
-      - image: circleci/clojure:openjdk-11-lein-2.9.1
+      - image: circleci/clojure:openjdk-11-lein-2.9.4
     working_directory: ~/repo
 
 

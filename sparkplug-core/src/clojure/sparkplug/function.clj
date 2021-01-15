@@ -27,7 +27,18 @@
         nil))))
 
 
-(defn- walk-object-vars
+(defn- fn-namespace
+  "Given a function object, derive the name of the namespace where it was
+  defined."
+  [obj]
+  (-> (.getName (class obj))
+      (Compiler/demunge)
+      (str/split #"/")
+      (first)
+      (symbol)))
+
+
+(defn- walk-object-refs
   "Walk the given object to find namespaces referenced by vars. Adds discovered
   reference symbols to `references` and tracks values in `visited`."
   [^HashSet references ^HashSet visited obj]
@@ -42,45 +53,48 @@
                 ;; Nothing to do if we've already visited this object.
                 (.contains visited obj))
     (.add visited obj)
-    (if (var? obj)
+    (cond
       ;; Vars directly represent a namespace dependency.
+      (var? obj)
       (let [ns-sym (ns-name (:ns (meta obj)))]
         (.add references ns-sym))
-      ;; Otherwise, traverse the object.
-      (do
-        ;; For maps and records, traverse over their contents in addition to
-        ;; their fields.
-        (when (map? obj)
-          (doseq [entry obj]
-            (walk-object-vars references visited entry)))
-        ;; Traverse the fields of the value for more references.
-        (doseq [^Field field (.getDeclaredFields (class obj))]
-          ;; Only traverse static fields for maps.
-          (when (or (not (map? obj)) (Modifier/isStatic (.getModifiers field)))
+
+      ;; Clojure functions:
+      ;; Try to derive the namespace that defined the function.
+      ;; Functions also have Var references as static fields,
+      ;; and have closed-over objects as non-static fields.
+      (fn? obj)
+      (let [ns-sym (fn-namespace obj)]
+        ;; When using a piece of data as a function, such as a keyword or set,
+        ;; this will actually be a class name like `clojure.lang.Keyword`.
+        ;; Avoid marking class names as namespaces to be required.
+        (when-not (class? (resolve ns-sym))
+          (.add references ns-sym)
+          (doseq [^Field field (.getDeclaredFields (class obj))]
             (let [value (access-field field obj)]
-              (when (or (ifn? value) (map? value))
-                (walk-object-vars references visited value)))))))))
+              (walk-object-refs references visited value)))))
+
+      ;; For collection-like objects, (e.g. vectors, maps, records, Java collections),
+      ;; just traverse the objects they contain.
+      (seqable? obj)
+      (doseq [entry obj]
+        (walk-object-refs references visited entry))
+
+      ;; Otherwise, reflectively traverse the fields of the object for more references.
+      :else
+      (doseq [^Field field (.getDeclaredFields (class obj))]
+        (when-not (Modifier/isStatic (.getModifiers field))
+          (let [value (access-field field obj)]
+            (walk-object-refs references visited value)))))))
 
 
 (defn namespace-references
   "Walk the given function-like object to find all namespaces referenced by
   closed-over vars. Returns a set of referenced namespace symbols."
   [^Object obj]
-  (let [;; Attempt to derive the needed Clojure namespace
-        ;; from the function's class name.
-        obj-ns (-> (.. obj getClass getName)
-                   (Compiler/demunge)
-                   (str/split #"/")
-                   (first)
-                   (symbol))
-        references (HashSet.)
+  (let [references (HashSet.)
         visited (HashSet.)]
-    ;; When using a piece of data as a function, such as a keyword or set,
-    ;; obj-ns will actually be a class name like `clojure.lang.Keyword`.
-    ;; Avoid marking class names as namespaces to be required.
-    (when-not (class? (resolve obj-ns))
-      (.add references obj-ns))
-    (walk-object-vars references visited obj)
+    (walk-object-refs references visited obj)
     (disj (set references) 'clojure.core)))
 
 

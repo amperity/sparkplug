@@ -14,7 +14,8 @@
 (def local-conf
   (-> (conf/spark-conf)
       (conf/master "local[*]")
-      (conf/app-name "user")))
+      (conf/app-name "user")
+      (conf/set-param "spark.ui.enabled" "false")))
 
 
 (defn spark-context-fixture

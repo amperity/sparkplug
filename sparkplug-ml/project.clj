@@ -1,4 +1,4 @@
-(defproject amperity/sparkplug-ml "0.1.7-SNAPSHOT"
+(defproject amperity/sparkplug-ml "0.1.7"
   :description "Clojure API for Apache Spark Machine Learning"
   :url "https://github.com/amperity/sparkplug"
   :scm {:dir ".."}
@@ -9,7 +9,7 @@
 
   :dependencies
   [[org.clojure/clojure "1.10.1"]
-   [amperity/sparkplug-core "0.1.7-SNAPSHOT"]]
+   [amperity/sparkplug-core "0.1.7"]]
 
   :profiles
   {:default

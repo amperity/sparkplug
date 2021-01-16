@@ -2,7 +2,8 @@
   "This namespace generates function classes for various kinds of interop with
   Spark and Scala."
   (:require
-    [clojure.string :as str])
+    [clojure.string :as str]
+    [clojure.tools.logging :as log])
   (:import
     (java.lang.reflect
       Field
@@ -22,8 +23,8 @@
       (when-not accessible?
         (.setAccessible field true))
       (.get field obj)
-      (catch IllegalAccessException ex
-        ;; TODO: warn?
+      (catch Exception e
+        (log/tracef "Failed to access field %s: %s" field (class e))
         nil))))
 
 

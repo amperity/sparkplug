@@ -4,7 +4,11 @@ version: 2.1
 executors:
   clojure:
     docker:
-      - image: circleci/clojure:openjdk-8-lein-2.9.1
+      - image: circleci/clojure:openjdk-8-lein-2.9.5
+    working_directory: ~/repo
+  clojure-java-11:
+    docker:
+      - image: circleci/clojure:openjdk-11-lein-2.9.5
     working_directory: ~/repo
 
 
@@ -44,6 +48,24 @@ jobs:
           paths:
             - ~/.m2
 
+  test-spark-3-java-11:
+    executor: clojure-java-11
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - v1-test-spark-3-java-11-{{ checksum "project.clj" }}
+            - v1-test-spark-3-java-11-
+      - run:
+          name: Test projects
+          command: |
+            lein -version
+            lein monolith each with-profile +spark-3.0 do clean, check, install
+      - save_cache:
+          key: v1-test-spark-3-java-11-{{ checksum "project.clj" }}
+          paths:
+            - ~/.m2
+
   coverage:
     executor: clojure
     steps:
@@ -58,7 +80,7 @@ jobs:
           command: lein monolith each install
       - run:
           name: Generate coverage
-          command: lein monolith with-all cloverage --codecov
+          command: lein monolith each :in sparkplug-core with-profile +spark-2.4 cloverage --codecov
       - save_cache:
           key: v1-coverage-{{ checksum "project.clj" }}
           paths:
@@ -78,6 +100,7 @@ workflows:
     jobs:
       - style
       - test
+      - test-spark-3-java-11
       - coverage:
           requires:
             - test

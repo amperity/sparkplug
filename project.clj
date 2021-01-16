@@ -9,8 +9,8 @@
   :deploy-repositories {"releases" {:url "https://repo.clojars.org"}}
 
   :plugins
-  [[lein-cloverage "1.1.1"]
-   [lein-monolith "1.2.2"]]
+  [[lein-cloverage "1.2.2"]
+   [lein-monolith "1.6.1"]]
 
   :dependencies
   [[org.clojure/clojure "1.10.1"]

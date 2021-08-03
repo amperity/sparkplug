@@ -42,7 +42,7 @@ jobs:
             - v1-test-
       - run:
           name: Test projects
-          command: lein monolith each do clean, check, install
+          command: lein monolith each do clean, check, install, test
       - save_cache:
           key: v1-test-{{ checksum "project.clj" }}
           paths:
@@ -60,7 +60,7 @@ jobs:
           name: Test projects
           command: |
             lein -version
-            lein monolith each with-profile +spark-3.0 do clean, check, install
+            lein monolith each with-profile -spark-2.4,+spark-3.0 do clean, check, install, test
       - save_cache:
           key: v1-test-spark-3-java-11-{{ checksum "project.clj" }}
           paths:

@@ -53,6 +53,8 @@
                 (spark/into [])))))
 
   (testing "union"
+    (is (= #{:a :b}
+           (spark/into #{} (spark/union (rdd/parallelize *sc* [:a :b])))))
     (is (= #{:a :b :c :d}
            (spark/into
              #{}
@@ -66,6 +68,8 @@
                (rdd/parallelize *sc* [:a :b])
                (rdd/parallelize *sc* [:c :d])
                (rdd/parallelize *sc* [:e :f])))))
+    (is (= #{[:a :b]}
+           (spark/into #{} (spark/union (rdd/parallelize-pairs *sc* [[:a :b]])))))
     (is (= #{[:a :b] [:c :d]}
            (spark/into
              #{}

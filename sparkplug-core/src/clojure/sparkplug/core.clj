@@ -21,7 +21,8 @@
       JavaRDDLike
       JavaSparkContext)
     org.apache.spark.broadcast.Broadcast
-    sparkplug.broadcast.DerefBroadcast))
+    sparkplug.broadcast.DerefBroadcast
+    sparkplug.core.UnionHelper))
 
 
 ;; ## Broadcast Variables
@@ -299,17 +300,19 @@
 (defn union
   "Construct a union of the elements in the provided RDDs. Any identical
   elements will appear multiple times."
-  ([rdd1 rdd2]
-   (rdd/set-callsite-name
-     (.union rdd1 rdd2)))
-  ([rdd1 rdd2 & rdds]
-   (rdd/set-callsite-name
-     ;; This method signature is a bit tricky to target since
-     ;; `JavaSparkContext` also defines `union` on `JavaPairRDD` and
-     ;; `JavaDoubleRDD` which extend the base `JavaRDD` type.
-     (.union (JavaSparkContext/fromSparkContext (.context rdd1))
-             rdd1
-             ^java.util.List (list* rdd2 rdds)))))
+  [rdd1 & rdds]
+  (let [ctx (JavaSparkContext/fromSparkContext (.context ^JavaRDDLike rdd1))]
+    (rdd/set-callsite-name
+      (condp instance? rdd1
+        JavaRDD
+        (UnionHelper/unionJavaRDDs ctx (into-array JavaRDD (list* rdd1 rdds)))
+
+        JavaPairRDD
+        (UnionHelper/unionJavaPairRDDs ctx (into-array JavaPairRDD (list* rdd1 rdds)))
+
+        (throw
+          (IllegalArgumentException.
+            (str "Unsupported type for RDD union: " (.getName (class rdd1)))))))))
 
 
 ;; Type hints are omitted because `intersecton` is not included in JavaRDDLike.

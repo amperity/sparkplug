@@ -50,4 +50,36 @@
                 (spark/into []))
            (->> (rdd/parallelize *sc* (shuffle (range 10)))
                 (spark/sort-by identity false)
-                (spark/into []))))))
+                (spark/into [])))))
+
+  (testing "union"
+    (is (= #{:a :b}
+           (spark/into #{} (spark/union (rdd/parallelize *sc* [:a :b])))))
+    (is (= #{:a :b :c :d}
+           (spark/into
+             #{}
+             (spark/union
+               (rdd/parallelize *sc* [:a :b])
+               (rdd/parallelize *sc* [:c :d])))))
+    (is (= #{:a :b :c :d :e :f}
+           (spark/into
+             #{}
+             (spark/union
+               (rdd/parallelize *sc* [:a :b])
+               (rdd/parallelize *sc* [:c :d])
+               (rdd/parallelize *sc* [:e :f])))))
+    (is (= #{[:a :b]}
+           (spark/into #{} (spark/union (rdd/parallelize-pairs *sc* [[:a :b]])))))
+    (is (= #{[:a :b] [:c :d]}
+           (spark/into
+             #{}
+             (spark/union
+               (rdd/parallelize-pairs *sc* [[:a :b]])
+               (rdd/parallelize-pairs *sc* [[:c :d]])))))
+    (is (= #{[:a :b] [:c :d] [:e :f]}
+           (spark/into
+             #{}
+             (spark/union
+               (rdd/parallelize-pairs *sc* [[:a :b]])
+               (rdd/parallelize-pairs *sc* [[:c :d]])
+               (rdd/parallelize-pairs *sc* [[:e :f]])))))))

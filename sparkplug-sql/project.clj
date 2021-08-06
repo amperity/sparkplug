@@ -1,4 +1,4 @@
-(defproject amperity/sparkplug-sql "0.1.8"
+(defproject amperity/sparkplug-sql "0.1.9-SNAPSHOT"
   :description "Clojure API for Apache Spark SQL"
   :url "https://github.com/amperity/sparkplug"
   :scm {:dir ".."}

@@ -1,4 +1,4 @@
-(defproject amperity/sparkplug "0.1.8-SNAPSHOT"
+(defproject amperity/sparkplug "0.1.8"
   :description "Clojure API for Apache Spark"
   :url "https://github.com/amperity/sparkplug"
   :license {:name "Apache License 2.0"

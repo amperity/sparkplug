@@ -9,26 +9,26 @@
 
   :dependencies
   [[org.clojure/clojure "1.10.1"]
-   [amperity/sparkplug-core "0.1.8-SNAPSHOT"]]
+   [amperity/sparkplug-core "0.1.9-SNAPSHOT"]]
 
   :source-paths ["src/clojure"]
   :java-source-paths ["src/java"]
 
   :profiles
   {:default
-   [:base :system :user :provided :spark-2.4 :dev]
+   [:base :system :user :provided :spark-3.1 :dev]
 
    :repl
    {:source-paths ["dev"]}
 
-   :spark-2.4
+   :spark-3.1
    ^{:pom-scope :provided}
    {:dependencies
-    [[org.apache.spark/spark-core_2.12 "2.4.4"]
-     [org.apache.spark/spark-sql_2.12 "2.4.4"]]}
+    [[org.apache.spark/spark-core_2.12 "3.1.3"]
+     [org.apache.spark/spark-sql_2.12 "3.1.3"]]}
 
-   :spark-3.0
+   :spark-3.2
    ^{:pom-scope :provided}
    {:dependencies
-    [[org.apache.spark/spark-core_2.12 "3.0.1"]
-     [org.apache.spark/spark-sql_2.12 "3.0.1"]]}})
+    [[org.apache.spark/spark-core_2.12 "3.2.1"]
+     [org.apache.spark/spark-sql_2.12 "3.2.1"]]}})

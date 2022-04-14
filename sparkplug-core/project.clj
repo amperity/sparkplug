@@ -17,7 +17,7 @@
 
   :profiles
   {:default
-   [:base :system :user :provided :spark-2.4 :dev]
+   [:base :system :user :provided :spark-3.1 :dev]
 
    :dev
    {:jvm-opts ["-server" "-Xmx2g"]
@@ -32,19 +32,12 @@
    :test
    {:jvm-opts ["-XX:-OmitStackTraceInFastThrow"]}
 
-   :spark-2.4
+   :spark-3.1
    ^{:pom-scope :provided}
    {:dependencies
-    [[org.apache.spark/spark-core_2.12 "2.4.4"]
+    [[org.apache.spark/spark-core_2.12 "3.1.3"]]}
 
-     ;; Version conflicts
-     [commons-codec "1.10"]
-     [com.fasterxml.jackson.core/jackson-core "2.7.9"]
-     [com.google.code.findbugs/jsr305 "3.0.2"]
-     [org.scala-lang/scala-reflect "2.12.8"]
-     [org.slf4j/slf4j-api "1.7.25"]]}
-
-   :spark-3.0
+   :spark-3.2
    ^{:pom-scope :provided}
    {:dependencies
-    [[org.apache.spark/spark-core_2.12 "3.0.1"]]}})
+    [[org.apache.spark/spark-core_2.12 "3.2.1"]]}})

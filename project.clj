@@ -14,9 +14,9 @@
 
   :dependencies
   [[org.clojure/clojure "1.10.1"]
-   [amperity/sparkplug-core "0.1.8-SNAPSHOT"]
-   [amperity/sparkplug-sql "0.1.8-SNAPSHOT"]
-   [amperity/sparkplug-ml "0.1.8-SNAPSHOT"]]
+   [amperity/sparkplug-core "0.1.9-SNAPSHOT"]
+   [amperity/sparkplug-sql "0.1.9-SNAPSHOT"]
+   [amperity/sparkplug-ml "0.1.9-SNAPSHOT"]]
 
   :profiles
   {:dev

@@ -9,7 +9,7 @@
 
   :dependencies
   [[org.clojure/clojure "1.10.1"]
-   [amperity/sparkplug-core "0.1.8-SNAPSHOT"]]
+   [amperity/sparkplug-core "0.1.9-SNAPSHOT"]]
 
   :source-paths ["src/clojure"]
   :java-source-paths ["src/java"]

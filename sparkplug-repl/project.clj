@@ -9,7 +9,7 @@
 
   :dependencies
   [[org.clojure/clojure "1.10.1"]
-   [amperity/sparkplug-core "0.1.8-SNAPSHOT"]
+   [amperity/sparkplug-core "0.1.9-SNAPSHOT"]
    [mvxcvi/whidbey "2.1.1"]
    [nrepl "0.6.0"]]
 

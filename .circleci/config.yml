@@ -2,7 +2,7 @@ version: 2.1
 
 # Common executor configuration
 executors:
-  clojure:
+  clojure-java-8:
     docker:
       - image: circleci/clojure:openjdk-8-lein-2.9.5
     working_directory: ~/repo
@@ -15,7 +15,7 @@ executors:
 # Job definitions
 jobs:
   style:
-    executor: clojure
+    executor: clojure-java-11
     steps:
       - checkout
       - run:
@@ -32,42 +32,44 @@ jobs:
           path: style-stats.tsv
           destination: style
 
-  test:
-    executor: clojure
+  test-spark-3-1-java-8:
+    executor: clojure-java-8
     steps:
       - checkout
       - restore_cache:
           keys:
-            - v1-test-{{ checksum "project.clj" }}
-            - v1-test-
+            - v1-test-spark-3.1-java-8-{{ checksum "project.clj" }}
+            - v1-test-spark-3.1-java-8-
       - run:
           name: Test projects
-          command: lein monolith each do clean, check, install, test
+          command: |
+            lein -version
+            lein monolith each do clean, check, install, test
       - save_cache:
           key: v1-test-{{ checksum "project.clj" }}
           paths:
             - ~/.m2
 
-  test-spark-3-java-11:
-    executor: clojure-java-11
+  test-spark-3-2-java-8:
+    executor: clojure-java-8
     steps:
       - checkout
       - restore_cache:
           keys:
-            - v1-test-spark-3-java-11-{{ checksum "project.clj" }}
-            - v1-test-spark-3-java-11-
+            - v1-test-spark-3.2-java-8-{{ checksum "project.clj" }}
+            - v1-test-spark-3.2-java-8-
       - run:
           name: Test projects
           command: |
             lein -version
-            lein monolith each with-profile -spark-2.4,+spark-3.0 do clean, check, install, test
+            lein monolith each with-profile -spark-3.1,+spark-3.2 do clean, check, install, test
       - save_cache:
-          key: v1-test-spark-3-java-11-{{ checksum "project.clj" }}
+          key: v1-test-spark-3.2-java-8-{{ checksum "project.clj" }}
           paths:
             - ~/.m2
 
   coverage:
-    executor: clojure
+    executor: clojure-java-11
     steps:
       - checkout
       - restore_cache:
@@ -80,7 +82,7 @@ jobs:
           command: lein monolith each install
       - run:
           name: Generate coverage
-          command: lein monolith each :in sparkplug-core with-profile +spark-2.4 cloverage --codecov
+          command: lein monolith each :in sparkplug-core with-profile +spark-3.1 cloverage --codecov
       - save_cache:
           key: v1-coverage-{{ checksum "project.clj" }}
           paths:
@@ -99,8 +101,8 @@ workflows:
   build:
     jobs:
       - style
-      - test
-      - test-spark-3-java-11
+      - test-spark-3-1-java-8
+      - test-spark-3-2-java-8
       - coverage:
           requires:
-            - test
+            - test-spark-3-1-java-8

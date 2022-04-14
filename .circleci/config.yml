@@ -68,6 +68,42 @@ jobs:
           paths:
             - ~/.m2
 
+  test-spark-3-1-java-11:
+    executor: clojure-java-11
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - v1-test-spark-3.1-java-11-{{ checksum "project.clj" }}
+            - v1-test-spark-3.1-java-11-
+      - run:
+          name: Test projects
+          command: |
+            lein -version
+            lein monolith each do clean, check, install, test
+      - save_cache:
+          key: v1-test-{{ checksum "project.clj" }}
+          paths:
+            - ~/.m2
+
+  test-spark-3-2-java-11:
+    executor: clojure-java-11
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - v1-test-spark-3.2-java-11-{{ checksum "project.clj" }}
+            - v1-test-spark-3.2-java-11-
+      - run:
+          name: Test projects
+          command: |
+            lein -version
+            lein monolith each with-profile -spark-3.1,+spark-3.2 do clean, check, install, test
+      - save_cache:
+          key: v1-test-spark-3.2-java-11-{{ checksum "project.clj" }}
+          paths:
+            - ~/.m2
+
   coverage:
     executor: clojure-java-11
     steps:
@@ -103,6 +139,8 @@ workflows:
       - style
       - test-spark-3-1-java-8
       - test-spark-3-2-java-8
+      - test-spark-3-1-java-11
+      - test-spark-3-2-java-11
       - coverage:
           requires:
             - test-spark-3-1-java-8

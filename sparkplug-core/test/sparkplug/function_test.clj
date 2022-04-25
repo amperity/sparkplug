@@ -9,7 +9,9 @@
 
 (defprotocol TestProto
 
-  (proto-method [this]))
+  (proto-method [this])
+
+  (get-closure [this]))
 
 
 (defrecord TestRecord
@@ -17,7 +19,16 @@
 
   TestProto
 
-  (proto-method [this] (example-fn)))
+  (proto-method
+    [this]
+    (example-fn))
+
+
+  (get-closure
+    [this]
+    (fn inside-fn
+      []
+      nil)))
 
 
 (deftest resolve-namespace-references
@@ -78,4 +89,9 @@
     (let [inst (->TestRecord
                  (fn []
                    (f/namespace-references nil)))]
-      (fn [] (proto-method inst)))))
+      (fn [] (proto-method inst)))
+
+    ;; Function closure defined inside a record class.
+    #{this-ns}
+    (let [x (->TestRecord nil)]
+      (get-closure x))))

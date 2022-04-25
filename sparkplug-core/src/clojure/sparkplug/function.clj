@@ -28,15 +28,52 @@
         nil))))
 
 
-(defn- fn-namespace
-  "Given a function object, derive the name of the namespace where it was
-  defined."
-  [obj]
-  (-> (.getName (class obj))
+(defn- fn-enclosing-class
+  "Given a function object, determine the name of the class which the function
+  is a child of. Usually this is the class representing the namespace where the
+  function is defined."
+  [f]
+  (-> (.getName (class f))
       (Compiler/demunge)
       (str/split #"/")
       (first)
       (symbol)))
+
+
+(defn- class-name?
+  "True if the provided symbol names a class, rather than a namespace."
+  [name-sym]
+  (let [class-name (-> (str name-sym)
+                       (str/replace "-" "_")
+                       (symbol))]
+    (class? (resolve class-name))))
+
+
+(defn- type-namespace
+  "Given a symbol naming a record, return a symbol naming its defining
+  namespace if it exists."
+  [name-sym]
+  (let [ns-sym (-> (str name-sym)
+                   (str/replace #"\.[^.]+$" "")
+                   (symbol))]
+    (when (find-ns ns-sym)
+      ns-sym)))
+
+
+(defn- fn-namespace
+  "Given a function object, derive the name of the namespace where it was
+  defined."
+  [f]
+  ;; The logic here is to avoid marking class names as namespaces to be
+  ;; required. When using a piece of data as a function, such as a keyword or
+  ;; set, this will actually be a class name like `clojure.lang.Keyword`. This
+  ;; also happens when referencing a function closure defined inside of a
+  ;; record implementation, since the function becomes an inner class; in that
+  ;; case, we _do_ want to mark the record's defining namespace.
+  (let [enclosing (fn-enclosing-class f)]
+    (if (class-name? enclosing)
+      (type-namespace enclosing)
+      enclosing)))
 
 
 (defn- walk-object-refs
@@ -65,15 +102,11 @@
       ;; Functions also have Var references as static fields,
       ;; and have closed-over objects as non-static fields.
       (fn? obj)
-      (let [ns-sym (fn-namespace obj)]
-        ;; When using a piece of data as a function, such as a keyword or set,
-        ;; this will actually be a class name like `clojure.lang.Keyword`.
-        ;; Avoid marking class names as namespaces to be required.
-        (when-not (class? (resolve ns-sym))
-          (.add references ns-sym)
-          (doseq [^Field field (.getDeclaredFields (class obj))]
-            (let [value (access-field field obj)]
-              (walk-object-refs references visited value)))))
+      (when-let [ns-sym (fn-namespace obj)]
+        (.add references ns-sym)
+        (doseq [^Field field (.getDeclaredFields (class obj))]
+          (let [value (access-field field obj)]
+            (walk-object-refs references visited value))))
 
       ;; For collection-like objects, (e.g. vectors, maps, records, Java collections),
       ;; just traverse the objects they contain.

@@ -1,4 +1,4 @@
-(defproject amperity/sparkplug-core "0.1.9-SNAPSHOT"
+(defproject amperity/sparkplug-core "0.1.9"
   :description "Clojure API for Apache Spark"
   :url "https://github.com/amperity/sparkplug"
   :scm {:dir ".."}
@@ -8,7 +8,7 @@
   :monolith/inherit true
 
   :dependencies
-  [[org.clojure/clojure "1.10.1"]
+  [[org.clojure/clojure "1.10.3"]
    [org.clojure/java.classpath "1.0.0"]
    [org.clojure/tools.logging "1.0.0"]]
 

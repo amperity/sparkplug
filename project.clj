@@ -14,8 +14,7 @@
 
   :dependencies
   [[org.clojure/clojure "1.10.3"]
-   [amperity/sparkplug-core "1.0.0-SNAPSHOT"]
-   [amperity/sparkplug-sql "1.0.0-SNAPSHOT"]]
+   [amperity/sparkplug-core "1.0.0-SNAPSHOT"]]
 
   :profiles
   {:dev
@@ -24,7 +23,6 @@
 
   :monolith
   {:project-dirs ["sparkplug-core"
-                  "sparkplug-sql"
                   "sparkplug-repl"]
    :inherit [:deploy-branches
              :pedantic?]})

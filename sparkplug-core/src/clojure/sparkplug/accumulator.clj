@@ -8,7 +8,6 @@
     org.apache.spark.api.java.JavaSparkContext
     (org.apache.spark.util
       AccumulatorV2
-      CollectionAccumulator
       DoubleAccumulator
       LongAccumulator)))
 

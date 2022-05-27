@@ -88,7 +88,7 @@
                              (str " [" (str/join ", " args) "]")
                              ""))]
       (.setName rdd rdd-name))
-    (catch Exception e
+    (catch Exception _
       ;; Ignore errors and return an unnamed RDD.
       rdd)))
 

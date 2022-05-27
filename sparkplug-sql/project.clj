@@ -1,4 +1,4 @@
-(defproject amperity/sparkplug-sql "0.1.9"
+(defproject amperity/sparkplug-sql "1.0.0-SNAPSHOT"
   :description "Clojure API for Apache Spark SQL"
   :url "https://github.com/amperity/sparkplug"
   :scm {:dir ".."}
@@ -9,7 +9,7 @@
 
   :dependencies
   [[org.clojure/clojure "1.10.3"]
-   [amperity/sparkplug-core "0.1.9"]]
+   [amperity/sparkplug-core "1.0.0-SNAPSHOT"]]
 
   :source-paths ["src/clojure"]
   :java-source-paths ["src/java"]

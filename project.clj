@@ -1,4 +1,4 @@
-(defproject amperity/sparkplug "0.1.9"
+(defproject amperity/sparkplug "1.0.0-SNAPSHOT"
   :description "Clojure API for Apache Spark"
   :url "https://github.com/amperity/sparkplug"
   :license {:name "Apache License 2.0"
@@ -14,8 +14,8 @@
 
   :dependencies
   [[org.clojure/clojure "1.10.3"]
-   [amperity/sparkplug-core "0.1.9"]
-   [amperity/sparkplug-sql "0.1.9"]]
+   [amperity/sparkplug-core "1.0.0-SNAPSHOT"]
+   [amperity/sparkplug-sql "1.0.0-SNAPSHOT"]]
 
   :profiles
   {:dev

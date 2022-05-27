@@ -19,7 +19,7 @@
   :profiles
   {:dev
    {:dependencies
-    [[org.clojure/test.check "1.0.0"]]}}
+    [[org.clojure/test.check "1.1.1"]]}}
 
   :monolith
   {:project-dirs ["sparkplug-core"

@@ -6,6 +6,10 @@ follows the conventions of [keepachangelog.com](http://keepachangelog.com/).
 This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+...
+
+
+## [1.0.0] - 2022-05-31
 
 ### Changed
 - Update some project dependencies to the latest versions.
@@ -34,6 +38,7 @@ This project adheres to [Semantic Versioning](http://semver.org/).
   [#21](https://github.com/amperity/sparkplug/pull/21)
 
 
-[Unreleased]: https://github.com/amperity/sparkplug/compare/0.1.9...HEAD
+[Unreleased]: https://github.com/amperity/sparkplug/compare/1.0.0...HEAD
+[1.0.0]: https://github.com/amperity/sparkplug/compare/0.1.9...1.0.0
 [0.1.9]: https://github.com/amperity/sparkplug/compare/0.1.8...0.1.9
 [0.1.8]: https://github.com/amperity/sparkplug/compare/0.1.7...0.1.8

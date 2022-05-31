@@ -39,7 +39,6 @@
       PersistentTreeSet
       Ratio
       StringSeq
-      Symbol
       Var)
     (com.esotericsoftware.kryo
       Kryo
@@ -50,7 +49,6 @@
     java.io.File
     java.math.BigInteger
     (java.util.jar
-      JarEntry
       JarFile)
     org.objenesis.strategy.StdInstantiatorStrategy))
 
@@ -276,7 +274,7 @@
   "Load the configuration `action` as read from the given `registry`.
   Dispatches on action type."
   [registry action]
-  (let [{:keys [path name text]} registry
+  (let [{:keys [path name]} registry
         {:keys [line type args]} action]
     (try
       (case type

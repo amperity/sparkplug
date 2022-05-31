@@ -8,8 +8,7 @@
     (java.lang.reflect
       Field
       Modifier)
-    java.util.HashSet
-    sparkplug.function.SerializableFn))
+    java.util.HashSet))
 
 
 ;; ## Namespace Discovery

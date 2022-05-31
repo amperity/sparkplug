@@ -9,7 +9,6 @@
                             mapcat max min reduce sort-by take vals])
   (:require
     [clojure.core :as c]
-    [clojure.tools.logging :as log]
     [sparkplug.function :as f]
     [sparkplug.rdd :as rdd]
     [sparkplug.scala :as scala])

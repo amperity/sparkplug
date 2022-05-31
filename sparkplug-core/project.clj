@@ -1,4 +1,4 @@
-(defproject amperity/sparkplug-core "0.1.9"
+(defproject amperity/sparkplug-core "1.0.0-SNAPSHOT"
   :description "Clojure API for Apache Spark"
   :url "https://github.com/amperity/sparkplug"
   :scm {:dir ".."}
@@ -10,7 +10,7 @@
   :dependencies
   [[org.clojure/clojure "1.10.3"]
    [org.clojure/java.classpath "1.0.0"]
-   [org.clojure/tools.logging "1.0.0"]]
+   [org.clojure/tools.logging "1.2.4"]]
 
   :source-paths ["src/clojure"]
   :java-source-paths ["src/java"]
@@ -22,12 +22,12 @@
    :dev
    {:jvm-opts ["-server" "-Xmx2g"]
     :dependencies
-    [[org.clojure/test.check "1.0.0"]]}
+    [[org.clojure/test.check "1.1.1"]]}
 
    :repl
    {:source-paths ["dev"]
     :dependencies
-    [[org.clojure/tools.namespace "1.0.0"]]}
+    [[org.clojure/tools.namespace "1.3.0"]]}
 
    :test
    {:jvm-opts ["-XX:-OmitStackTraceInFastThrow"]}

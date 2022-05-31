@@ -7,7 +7,10 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
-...
+### Changed
+- Update some project dependencies to the latest versions.
+- The `sparkplug-sql` sub-project, which has been empty since its creation
+  over two years ago, has been removed for now.
 
 
 ## [0.1.9] - 2022-04-25

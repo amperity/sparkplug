@@ -13,7 +13,7 @@
    [lein-monolith "1.7.0"]]
 
   :dependencies
-  [[org.clojure/clojure "1.10.3"]
+  [[org.clojure/clojure "1.11.1"]
    [amperity/sparkplug-core "1.0.1-SNAPSHOT"]]
 
   :profiles

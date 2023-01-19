@@ -8,7 +8,7 @@
   :monolith/inherit true
 
   :dependencies
-  [[org.clojure/clojure "1.10.3"]
+  [[org.clojure/clojure "1.11.1"]
    [org.clojure/java.classpath "1.0.0"]
    [org.clojure/tools.logging "1.2.4"]]
 

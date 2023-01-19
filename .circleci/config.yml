@@ -2,13 +2,9 @@ version: 2.1
 
 # Common executor configuration
 executors:
-  clojure-java-8:
-    docker:
-      - image: circleci/clojure:openjdk-8-lein-2.9.5
-    working_directory: ~/repo
   clojure-java-11:
     docker:
-      - image: circleci/clojure:openjdk-11-lein-2.9.5
+      - image: cimg/clojure:1.11.1-openjdk-11.0
     working_directory: ~/repo
 
 
@@ -31,42 +27,6 @@ jobs:
       - store_artifacts:
           path: style-stats.tsv
           destination: style
-
-  test-spark-3-1-java-8:
-    executor: clojure-java-8
-    steps:
-      - checkout
-      - restore_cache:
-          keys:
-            - v1-test-spark-3.1-java-8-{{ checksum "project.clj" }}
-            - v1-test-spark-3.1-java-8-
-      - run:
-          name: Test projects
-          command: |
-            lein -version
-            lein monolith each do clean, check, install, test
-      - save_cache:
-          key: v1-test-{{ checksum "project.clj" }}
-          paths:
-            - ~/.m2
-
-  test-spark-3-2-java-8:
-    executor: clojure-java-8
-    steps:
-      - checkout
-      - restore_cache:
-          keys:
-            - v1-test-spark-3.2-java-8-{{ checksum "project.clj" }}
-            - v1-test-spark-3.2-java-8-
-      - run:
-          name: Test projects
-          command: |
-            lein -version
-            lein monolith each with-profile -spark-3.1,+spark-3.2 do clean, check, install, test
-      - save_cache:
-          key: v1-test-spark-3.2-java-8-{{ checksum "project.clj" }}
-          paths:
-            - ~/.m2
 
   test-spark-3-1-java-11:
     executor: clojure-java-11
@@ -137,10 +97,8 @@ workflows:
   build:
     jobs:
       - style
-      - test-spark-3-1-java-8
-      - test-spark-3-2-java-8
       - test-spark-3-1-java-11
       - test-spark-3-2-java-11
       - coverage:
           requires:
-            - test-spark-3-1-java-8
+            - test-spark-3-1-java-11

@@ -8,7 +8,7 @@
   :monolith/inherit true
 
   :dependencies
-  [[org.clojure/clojure "1.10.3"]
+  [[org.clojure/clojure "1.11.1"]
    [amperity/sparkplug-core "1.0.1-SNAPSHOT"]
    [mvxcvi/whidbey "2.1.1"]
    [nrepl "0.6.0"]]

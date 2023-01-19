@@ -6,7 +6,11 @@ follows the conventions of [keepachangelog.com](http://keepachangelog.com/).
 This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
-...
+
+### Changed
+- Sparkplug is now tested with Java 11 + Spark 3.1.3, and Java 11 + Spark 3.2.1.
+  Java 8 test coverage was dropped.
+- Bump Clojure to 1.11.1.
 
 
 ## [1.0.0] - 2022-05-31

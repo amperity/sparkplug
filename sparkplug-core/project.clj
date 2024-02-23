@@ -17,7 +17,7 @@
 
   :profiles
   {:default
-   [:base :system :user :provided :spark-3.1 :dev]
+   [:base :system :user :provided :spark-3.5 :dev]
 
    :dev
    {:jvm-opts ["-server" "-Xmx2g"]
@@ -32,12 +32,7 @@
    :test
    {:jvm-opts ["-XX:-OmitStackTraceInFastThrow"]}
 
-   :spark-3.1
+   :spark-3.5
    ^{:pom-scope :provided}
    {:dependencies
-    [[org.apache.spark/spark-core_2.12 "3.1.3"]]}
-
-   :spark-3.2
-   ^{:pom-scope :provided}
-   {:dependencies
-    [[org.apache.spark/spark-core_2.12 "3.2.1"]]}})
+    [[org.apache.spark/spark-core_2.12 "3.5.0"]]}})

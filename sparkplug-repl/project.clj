@@ -24,11 +24,17 @@
     {:custom-init (whidbey.repl/update-print-fn!)
      :init-ns sparkplug.repl.work}}
 
+   :spark-3.2
+   ^{:pom-scope :provided}
+   {:dependencies
+    [[org.apache.spark/spark-core_2.12 "3.2.1"]
+     [org.apache.spark/spark-sql_2.12 "3.2.1"]]}
+
    :spark-3.5
    ^{:pom-scope :provided}
    {:dependencies
-    [[org.apache.spark/spark-core_2.12 "3.5.0"]
-     [org.apache.spark/spark-sql_2.12 "3.5.0"]]}
+    [[org.apache.spark/spark-core_2.12 "3.5.1"]
+     [org.apache.spark/spark-sql_2.12 "3.5.1"]]}
 
    :uberjar
    {:target-path "target/uberjar"

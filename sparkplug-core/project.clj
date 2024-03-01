@@ -32,7 +32,12 @@
    :test
    {:jvm-opts ["-XX:-OmitStackTraceInFastThrow"]}
 
+   :spark-3.2
+   ^{:pom-scope :provided}
+   {:dependencies
+    [[org.apache.spark/spark-core_2.12 "3.2.1"]]}
+
    :spark-3.5
    ^{:pom-scope :provided}
    {:dependencies
-    [[org.apache.spark/spark-core_2.12 "3.5.0"]]}})
+    [[org.apache.spark/spark-core_2.12 "3.5.1"]]}})

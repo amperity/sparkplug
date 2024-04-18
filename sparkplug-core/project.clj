@@ -37,7 +37,7 @@
    {:dependencies
     [[org.apache.spark/spark-core_2.12 "3.1.3"]]}
 
-   :spark-3.2
+   :spark-3.5
    ^{:pom-scope :provided}
    {:dependencies
-    [[org.apache.spark/spark-core_2.12 "3.2.1"]]}})
+    [[org.apache.spark/spark-core_2.12 "3.5.1"]]}})

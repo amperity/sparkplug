@@ -26,6 +26,7 @@
 
    :repl
    {:source-paths ["dev"]
+    :aot [sparkplug.bool-repro]
     :dependencies
     [[org.clojure/tools.namespace "1.3.0"]]}
 

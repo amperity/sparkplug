@@ -31,12 +31,11 @@
 
    :repl
    {:source-paths ["dev"]
-    :aot [sparkplug.bool-repro]
     :dependencies
     [[org.clojure/tools.namespace "1.3.0"]]}
 
    :test
-   {:jvm-opts ["-XX:-OmitStackTraceInFastThrow"]}
+   {:aot [sparkplug.function.test-fns]}
 
    :spark-3.1
    ^{:pom-scope :provided}

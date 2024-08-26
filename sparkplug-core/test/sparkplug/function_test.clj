@@ -1,10 +1,18 @@
 (ns sparkplug.function-test
   (:require
-    [clojure.test :refer [are deftest is]]
-    [sparkplug.function :as f]))
+    [clojure.test :refer [are deftest is testing]]
+    [sparkplug.function :as f]
+    [sparkplug.function.test-fns :as test-fns])
+  (:import
+    (java.io
+      ByteArrayInputStream
+      ByteArrayOutputStream
+      ObjectInputStream
+      ObjectOutputStream)))
 
 
-(def this-ns (ns-name *ns*))
+(def this-ns
+  (ns-name *ns*))
 
 
 (defprotocol TestProto
@@ -95,3 +103,22 @@
     #{this-ns}
     (let [x (->TestRecord nil)]
       (get-closure x))))
+
+
+;; This is a regression test which ensures that decoded functions which close
+;; over a boolean value are updated to use the canonical `Boolean` static
+;; instances. Otherwise, users see bugs where a false value evaluates as truthy.
+(deftest canonical-booleans
+  (let [original-fn (f/fn1 (test-fns/bool-closure false))
+        serialized (let [baos (ByteArrayOutputStream.)]
+                     (with-open [out (ObjectOutputStream. baos)]
+                       (.writeObject out original-fn))
+                     (.toByteArray baos))
+        decoded-fn (with-open [in (ObjectInputStream. (ByteArrayInputStream. serialized))]
+                     (.readObject in))]
+    (testing "original behavior"
+      (is (nil? (.call original-fn :x))
+          "should not return value"))
+    (testing "decoded behavior"
+      (is (nil? (.call decoded-fn :x))
+          "should not return value"))))

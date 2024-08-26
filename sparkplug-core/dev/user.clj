@@ -5,7 +5,6 @@
     [clojure.stacktrace :refer [print-cause-trace]]
     [clojure.string :as str]
     [clojure.tools.namespace.repl :refer [refresh]]
-    [sparkplug.bool-repro :as bool]
     [sparkplug.config :as conf]
     [sparkplug.context :as ctx]
     [sparkplug.core :as spark]
@@ -69,43 +68,3 @@
     (map str/join)
     (str/join "\n")
     (println)))
-
-
-;; Boolean Shenanigans Reproduction
-
-(defn access-field
-  [value field]
-  (#'f/access-field field value))
-
-
-(def serializable-fn-field
-  (nth (.getDeclaredFields sparkplug.function.SerializableFn) 2))
-
-
-(def test-fn-inner-class
-  (class (access-field (bool/make-test-fn true) serializable-fn-field)))
-
-
-(def test-fn-boolean-field
-  (first (.getDeclaredFields test-fn-inner-class)))
-
-
-(defn get-inner-boolean
-  [sf]
-  (-> sf
-      (access-field serializable-fn-field)
-      (access-field test-fn-boolean-field)))
-
-
-(defn encode-fn
-  [sf]
-  (let [baos (java.io.ByteArrayOutputStream.)]
-    (with-open [out (java.io.ObjectOutputStream. baos)]
-      (.writeObject out sf))
-    (.toByteArray baos)))
-
-
-(defn decode-fn
-  [bs]
-  (with-open [in (java.io.ObjectInputStream. (java.io.ByteArrayInputStream. bs))]
-    (.readObject in)))

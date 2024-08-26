@@ -3,9 +3,13 @@ package sparkplug.function;
 
 import clojure.lang.Compiler;
 import clojure.lang.IFn;
+import clojure.lang.Keyword;
 import clojure.lang.RT;
 import clojure.lang.Symbol;
 import clojure.lang.Var;
+
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 
 import java.io.IOException;
 import java.io.InvalidObjectException;
@@ -61,6 +65,72 @@ public abstract class SerializableFn implements Serializable {
 
 
     /**
+     * Safely access the value of a field on the given object.
+     *
+     * @param obj Instance to access a field on
+     * @param field Reflective field to access
+     * @return the value of the field, or nil on failure
+     */
+    public static Object accessField(Object obj, Field field) {
+        try {
+            if (!field.isAccessible()) {
+                field.setAccessible(true);
+            }
+            return field.get(obj);
+        } catch (Exception ex) {
+            logger.trace("Failed to access field " + field.toString() + ": " + ex.getClass().getName());
+            return null;
+        }
+    }
+
+
+    /**
+     * Walk a value to convert any deserialized booleans back into the
+     * canonical java.lang.Boolean values.
+     *
+     * @param obj Object to walk references of
+     */
+    private void fixBooleans(Object obj) {
+        // Short-circuit objects which can't have nested values to fix.
+        if ((obj == null)
+                || (obj instanceof Boolean)
+                || (obj instanceof String)
+                || (obj instanceof Number)
+                || (obj instanceof Keyword)
+                || (obj instanceof Symbol)
+                || (obj instanceof Var)) {
+            return;
+        }
+
+        // For collection-like objects, just traverse their elements.
+        if (obj instanceof Iterable) {
+            for (Object el : (Iterable)obj) {
+                fixBooleans(el);
+            }
+            return;
+        }
+
+        // Otherwise, look at the object's fields and try to fix any booleans
+        // we find and traverse further.
+        for (Field field : obj.getClass().getDeclaredFields()) {
+            if (!Modifier.isStatic(field.getModifiers())) {
+                Object value = accessField(obj, field);
+                if (value instanceof Boolean) {
+                    Boolean canonical = ((Boolean)value).booleanValue() ? Boolean.TRUE : Boolean.FALSE;
+                    try {
+                        field.set(obj, canonical);
+                    } catch (IllegalAccessException ex) {
+                        logger.warn("Failed to set boolean field " + field.toString());
+                    }
+                } else {
+                    fixBooleans(value);
+                }
+            }
+        }
+    }
+
+
+    /**
      * Serialize the function to the provided output stream.
      * An unspoken part of the `Serializable` interface.
      *
@@ -111,6 +181,7 @@ public abstract class SerializableFn implements Serializable {
             }
             // Read the function itself.
             this.f = (IFn)in.readObject();
+            fixBooleans(this.f);
         } catch (IOException ex) {
             logger.error("IO error deserializing function " + className, ex);
             throw ex;

@@ -2,30 +2,16 @@
   "This namespace generates function classes for various kinds of interop with
   Spark and Scala."
   (:require
-    [clojure.string :as str]
-    [clojure.tools.logging :as log])
+    [clojure.string :as str])
   (:import
     (java.lang.reflect
       Field
       Modifier)
-    java.util.HashSet))
+    java.util.HashSet
+    sparkplug.function.SerializableFn))
 
 
 ;; ## Namespace Discovery
-
-(defn- access-field
-  "Attempt to get a field on the given object by making sure it is accessible.
-  Returns the field value on success, or nil on failure."
-  [^Field field obj]
-  (let [accessible? (.isAccessible field)]
-    (try
-      (when-not accessible?
-        (.setAccessible field true))
-      (.get field obj)
-      (catch Exception e
-        (log/tracef "Failed to access field %s: %s" field (class e))
-        nil))))
-
 
 (defn- fn-enclosing-class
   "Given a function object, determine the name of the class which the function
@@ -104,7 +90,7 @@
       (when-let [ns-sym (fn-namespace obj)]
         (.add references ns-sym)
         (doseq [^Field field (.getDeclaredFields (class obj))]
-          (let [value (access-field field obj)]
+          (let [value (SerializableFn/accessField obj field)]
             (walk-object-refs references visited value))))
 
       ;; For collection-like objects, (e.g. vectors, maps, records, Java collections),
@@ -117,7 +103,7 @@
       :else
       (doseq [^Field field (.getDeclaredFields (class obj))]
         (when-not (Modifier/isStatic (.getModifiers field))
-          (let [value (access-field field obj)]
+          (let [value (SerializableFn/accessField obj field)]
             (walk-object-refs references visited value)))))))
 
 

@@ -109,16 +109,32 @@
 ;; over a boolean value are updated to use the canonical `Boolean` static
 ;; instances. Otherwise, users see bugs where a false value evaluates as truthy.
 (deftest canonical-booleans
-  (let [original-fn (f/fn1 (test-fns/bool-closure false))
-        serialized (let [baos (ByteArrayOutputStream.)]
-                     (with-open [out (ObjectOutputStream. baos)]
-                       (.writeObject out original-fn))
-                     (.toByteArray baos))
-        decoded-fn (with-open [in (ObjectInputStream. (ByteArrayInputStream. serialized))]
-                     (.readObject in))]
-    (testing "original behavior"
-      (is (nil? (.call original-fn :x))
-          "should not return value"))
-    (testing "decoded behavior"
-      (is (nil? (.call decoded-fn :x))
-          "should not return value"))))
+  (letfn [(serialize
+            [f]
+            (let [baos (ByteArrayOutputStream.)]
+              (with-open [out (ObjectOutputStream. baos)]
+                (.writeObject out f))
+              (.toByteArray baos)))
+
+          (deserialize
+            [bs]
+            (with-open [in (ObjectInputStream. (ByteArrayInputStream. bs))]
+              (.readObject in)))]
+    (testing "closure over true value"
+      (let [original-fn (f/fn1 (test-fns/bool-closure true))
+            decoded-fn (-> original-fn serialize deserialize)]
+        (testing "original behavior"
+          (is (= :x (.call original-fn :x))
+              "should return value"))
+        (testing "decoded behavior"
+          (is (= :x (.call decoded-fn :x))
+              "should return value"))))
+    (testing "closure over false value"
+      (let [original-fn (f/fn1 (test-fns/bool-closure false))
+            decoded-fn (-> original-fn serialize deserialize)]
+        (testing "original behavior"
+          (is (nil? (.call original-fn :x))
+              "should not return value"))
+        (testing "decoded behavior"
+          (is (nil? (.call decoded-fn :x))
+              "should not return value"))))))

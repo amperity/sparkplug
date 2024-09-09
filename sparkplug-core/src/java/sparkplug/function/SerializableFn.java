@@ -20,6 +20,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -88,9 +89,10 @@ public abstract class SerializableFn implements Serializable {
      * Walk a value to convert any deserialized booleans back into the
      * canonical java.lang.Boolean values.
      *
+     * @param visited Set of objects already visited by the walk
      * @param obj Object to walk references of
      */
-    private void fixBooleans(Object obj) {
+    private void fixBooleans(HashSet<Object> visited, Object obj) {
         // Short-circuit objects which can't have nested values to fix.
         if ((obj == null)
                 || (obj instanceof Boolean)
@@ -102,10 +104,17 @@ public abstract class SerializableFn implements Serializable {
             return;
         }
 
+        // Short-circuit if we've already visited this object.
+        if (visited.contains(obj)) {
+            return;
+        }
+
+        visited.add(obj);
+
         // For collection-like objects, just traverse their elements.
         if (obj instanceof Iterable) {
             for (Object el : (Iterable)obj) {
-                fixBooleans(el);
+                fixBooleans(visited, el);
             }
             return;
         }
@@ -123,7 +132,7 @@ public abstract class SerializableFn implements Serializable {
                         logger.warn("Failed to set boolean field " + field.toString());
                     }
                 } else {
-                    fixBooleans(value);
+                    fixBooleans(visited, value);
                 }
             }
         }
@@ -181,7 +190,8 @@ public abstract class SerializableFn implements Serializable {
             }
             // Read the function itself.
             this.f = (IFn)in.readObject();
-            fixBooleans(this.f);
+            // Walk the data structure to coerce canonical booleans.
+            fixBooleans(new HashSet<Object>(), this.f);
         } catch (IOException ex) {
             logger.error("IO error deserializing function " + className, ex);
             throw ex;

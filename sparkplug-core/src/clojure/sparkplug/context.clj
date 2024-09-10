@@ -84,7 +84,6 @@
            (stop! ~ctx-sym))))))
 
 
-
 ;; ## Context Introspection
 
 (defn config
@@ -120,7 +119,6 @@
   a `cache!` call."
   [^JavaSparkContext spark-context]
   (into {} (.getPersistentRDDs spark-context)))
-
 
 
 ;; ## Context Modifiers

@@ -124,7 +124,6 @@
   `SerializableFn` and implements interfaces for compatibility with Spark."
   [fn-name constructor]
   (let [class-sym (symbol (str "sparkplug.function." fn-name))]
-    ^:cljfmt/ignore
     `(defn ~(vary-meta constructor assoc :tag class-sym)
        ~(str "Construct a new serializable " fn-name " function wrapping `f`.")
        [~'f]

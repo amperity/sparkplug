@@ -39,7 +39,6 @@
     (DerefBroadcast. broadcast (class value))))
 
 
-
 ;; ## RDD Transformations
 
 ;; Type hints are omitted because `filter` is not included in JavaRDDLike.
@@ -283,7 +282,6 @@
     (.zipWithUniqueId rdd)))
 
 
-
 ;; ## Multi-RDD Functions
 
 (defn cartesian
@@ -503,7 +501,6 @@
        (int partitions)))))
 
 
-
 ;; ## Pair RDD Aggregation
 
 (defn aggregate-by-key
@@ -637,7 +634,6 @@
      (rdd/fn-name compare-fn)
      (boolean ascending?)
      (int num-partitions))))
-
 
 
 ;; ## RDD Actions
@@ -782,7 +778,6 @@
   This is an action that causes computation."
   [aggregator combiner zero ^JavaRDDLike rdd]
   (.aggregate rdd zero (f/fn2 aggregator) (f/fn2 combiner)))
-
 
 
 ;; ## Pair RDD Actions

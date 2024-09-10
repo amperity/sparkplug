@@ -171,7 +171,6 @@
     (vals)))
 
 
-
 ;; ## Registry Actions
 
 (defn- load-require-action
@@ -362,7 +361,6 @@
         body-methods (into {} (map (juxt first identity)) body)
         write-form (get body-methods 'write)
         read-form (get body-methods 'read)]
-    ^:cljfmt/ignore
     `(defn ~name-sym
        ~(str "Construct a new Kryo serializer for " class-sym " values.")
        []
@@ -583,7 +581,6 @@
     [kryo input _]
     (let [cmp (.readClassAndObject kryo input)]
       (into (sorted-set-by cmp) (read-kvs kryo input)))))
-
 
 
 ;; ## Serialization Utilities

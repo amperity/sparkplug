@@ -27,7 +27,6 @@
     (.get ^Some o)))
 
 
-
 ;; ## Tuples
 
 (defn tuple

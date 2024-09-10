@@ -60,8 +60,11 @@
                           (+ % 256)
                           %))]
             (if (or (Character/isLetterOrDigit c)
-                    (Character/isWhitespace c))
+                    (and (Character/isWhitespace c)
+                         (not= \newline c)))
               c
               \.)))
-    (str/join)
+    (partition-all 32)
+    (map str/join)
+    (str/join "\n")
     (println)))

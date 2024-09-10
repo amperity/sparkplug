@@ -17,12 +17,17 @@
 
   :profiles
   {:default
-   [:base :system :user :provided :spark-3.1 :dev]
+   [:base :system :user :provided :spark-3.5 :dev]
 
    :dev
-   {:jvm-opts ["-server" "-Xmx2g"]
-    :dependencies
-    [[org.clojure/test.check "1.1.1"]]}
+   {:dependencies
+    [[org.clojure/test.check "1.1.1"]
+     [org.slf4j/slf4j-api "2.0.7"]
+     [org.slf4j/slf4j-simple "2.0.7"]]
+    :jvm-opts ["-Xmx2g"
+               "-XX:-OmitStackTraceInFastThrow"
+               "-Dorg.slf4j.simpleLogger.defaultLogLevel=warn"
+               "-Dorg.slf4j.simpleLogger.log.org.apache=warn"]}
 
    :repl
    {:source-paths ["dev"]
@@ -30,7 +35,7 @@
     [[org.clojure/tools.namespace "1.3.0"]]}
 
    :test
-   {:jvm-opts ["-XX:-OmitStackTraceInFastThrow"]}
+   {:aot [sparkplug.function.test-fns]}
 
    :spark-3.1
    ^{:pom-scope :provided}
@@ -40,4 +45,9 @@
    :spark-3.5
    ^{:pom-scope :provided}
    {:dependencies
-    [[org.apache.spark/spark-core_2.12 "3.5.1"]]}})
+    [[org.apache.spark/spark-core_2.12 "3.5.1"
+      :exclusions [org.apache.logging.log4j/log4j-slf4j2-impl]]
+
+     ;; Conflict resolution
+     [com.fasterxml.jackson.core/jackson-core "2.15.2"]
+     [com.google.code.findbugs/jsr305 "3.0.2"]]}})

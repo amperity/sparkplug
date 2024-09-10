@@ -1,10 +1,18 @@
 (ns sparkplug.function-test
   (:require
-    [clojure.test :refer [are deftest is]]
-    [sparkplug.function :as f]))
+    [clojure.test :refer [are deftest is testing]]
+    [sparkplug.function :as f]
+    [sparkplug.function.test-fns :as test-fns])
+  (:import
+    (java.io
+      ByteArrayInputStream
+      ByteArrayOutputStream
+      ObjectInputStream
+      ObjectOutputStream)))
 
 
-(def this-ns (ns-name *ns*))
+(def this-ns
+  (ns-name *ns*))
 
 
 (defprotocol TestProto
@@ -95,3 +103,38 @@
     #{this-ns}
     (let [x (->TestRecord nil)]
       (get-closure x))))
+
+
+;; This is a regression test which ensures that decoded functions which close
+;; over a boolean value are updated to use the canonical `Boolean` static
+;; instances. Otherwise, users see bugs where a false value evaluates as truthy.
+(deftest canonical-booleans
+  (letfn [(serialize
+            [f]
+            (let [baos (ByteArrayOutputStream.)]
+              (with-open [out (ObjectOutputStream. baos)]
+                (.writeObject out f))
+              (.toByteArray baos)))
+
+          (deserialize
+            [bs]
+            (with-open [in (ObjectInputStream. (ByteArrayInputStream. bs))]
+              (.readObject in)))]
+    (testing "closure over true value"
+      (let [original-fn (f/fn1 (test-fns/bool-closure true))
+            decoded-fn (-> original-fn serialize deserialize)]
+        (testing "original behavior"
+          (is (= :x (.call original-fn :x))
+              "should return value"))
+        (testing "decoded behavior"
+          (is (= :x (.call decoded-fn :x))
+              "should return value"))))
+    (testing "closure over false value"
+      (let [original-fn (f/fn1 (test-fns/bool-closure false))
+            decoded-fn (-> original-fn serialize deserialize)]
+        (testing "original behavior"
+          (is (nil? (.call original-fn :x))
+              "should not return value"))
+        (testing "decoded behavior"
+          (is (nil? (.call decoded-fn :x))
+              "should not return value"))))))

@@ -9,11 +9,17 @@
     [sparkplug.context :as ctx]
     [sparkplug.core :as spark]
     [sparkplug.function :as f]
+    [sparkplug.function.test-fns :as test-fns]
     [sparkplug.kryo :as kryo]
     [sparkplug.rdd :as rdd]
     [sparkplug.scala :as scala])
   (:import
-    com.esotericsoftware.kryo.Kryo))
+    com.esotericsoftware.kryo.Kryo
+    (java.io
+      ByteArrayInputStream
+      ByteArrayOutputStream
+      ObjectInputStream
+      ObjectOutputStream)))
 
 
 (def local-conf
@@ -59,12 +65,24 @@
     (map #(let [c (char (if (neg? %)
                           (+ % 256)
                           %))]
-            (if (or (Character/isLetterOrDigit c)
-                    (and (Character/isWhitespace c)
-                         (not= \newline c)))
+            (if (<= 32 (int c))
               c
               \.)))
     (partition-all 32)
     (map str/join)
     (str/join "\n")
     (println)))
+
+
+(defn serialize
+  [f]
+  (let [baos (ByteArrayOutputStream.)]
+    (with-open [out (ObjectOutputStream. baos)]
+      (.writeObject out f))
+    (.toByteArray baos)))
+
+
+(defn deserialize
+  [bs]
+  (with-open [in (ObjectInputStream. (ByteArrayInputStream. bs))]
+    (.readObject in)))

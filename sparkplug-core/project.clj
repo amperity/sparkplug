@@ -31,6 +31,7 @@
 
    :repl
    {:source-paths ["dev"]
+    :aot [sparkplug.function.test-fns]
     :dependencies
     [[org.clojure/tools.namespace "1.3.0"]]}
 

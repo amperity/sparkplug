@@ -20,7 +20,6 @@
                java.time.Instant {'inst str}}})
 
 
-
 ;; ## REPL Middleware
 
 (def repl-ns 'sparkplug.repl.work)
@@ -51,7 +50,6 @@
    :expects #{"eval"}})
 
 
-
 ;; ## Spark Lifecycle
 
 (defn- initialize-context!
@@ -72,7 +70,6 @@
   (let [ctx-var (ns-resolve repl-ns 'spark-context)]
     (when-let [ctx (and ctx-var @ctx-var)]
       (ctx/stop! ctx))))
-
 
 
 ;; ## Main Entry

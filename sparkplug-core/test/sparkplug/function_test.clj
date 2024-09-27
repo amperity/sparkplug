@@ -28,12 +28,12 @@
   TestProto
 
   (proto-method
-    [this]
+    [_]
     (example-fn))
 
 
   (get-closure
-    [this]
+    [_]
     (fn inside-fn
       []
       nil)))

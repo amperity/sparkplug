@@ -93,7 +93,6 @@
       rdd)))
 
 
-
 ;; ## Dataset Construction
 
 (defn empty
@@ -178,7 +177,6 @@
   (.saveAsTextFile rdd (str path)))
 
 
-
 ;; ## Partitioning Logic
 
 (defn hash-partitioner
@@ -261,7 +259,6 @@
      (.coalesce rdd (int num-partitions) (boolean shuffle?))
      (int num-partitions)
      (boolean shuffle?))))
-
 
 
 ;; ## Storage Management

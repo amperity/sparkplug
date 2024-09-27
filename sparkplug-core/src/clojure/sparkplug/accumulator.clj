@@ -41,7 +41,6 @@
    (.collectionAccumulator (.sc spark-context) acc-name)))
 
 
-
 ;; ## Accumulator Methods
 
 (defn name
@@ -80,7 +79,6 @@
   "Reset the accumulator to its empty or zero value."
   [^AccumulatorV2 acc]
   (.reset acc))
-
 
 
 ;; ## Numeric Accumulators

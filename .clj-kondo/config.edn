@@ -1,0 +1,18 @@
+{:linters
+ {:consistent-alias
+  {:level :warning
+   :aliases {clojure.java.io io
+             clojure.set set
+             clojure.string str
+             clojure.tools.logging log
+             sparkplug.function f
+             sparkplug.kryo kryo
+             sparkplug.rdd rdd}}}
+
+ :lint-as
+ {clojure.test.check.clojure-test/defspec clj-kondo.lint-as/def-catch-all
+  sparkplug.context/with-context clojure.core/let
+  sparkplug.kryo/defserializer clj-kondo.lint-as/def-catch-all}
+
+ :hooks
+ {:analyze-call {sparkplug.function/gen-function hooks.sparkplug.function/gen-function}}}

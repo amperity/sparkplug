@@ -19,7 +19,6 @@
        (.set "spark.kryo.registrator" "sparkplug.kryo.ClassPathRegistrator"))))
 
 
-
 ;; ## Property Accessors
 
 (defn contains-key?

@@ -1,16 +1,10 @@
 (ns sparkplug.kryo-test
   (:require
-    [clojure.test :refer [are deftest testing is]]
+    [clojure.test :refer [deftest is]]
     [clojure.test.check.clojure-test :refer [defspec]]
     [clojure.test.check.generators :as gen]
     [clojure.test.check.properties :as prop]
-    [clojure.walk :as walk]
-    [sparkplug.kryo :as kryo])
-  (:import
-    com.esotericsoftware.kryo.Kryo
-    (com.esotericsoftware.kryo.io
-      Input
-      Output)))
+    [sparkplug.kryo :as kryo]))
 
 
 (deftest classpath-search

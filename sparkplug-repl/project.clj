@@ -8,10 +8,10 @@
   :monolith/inherit true
 
   :dependencies
-  [[org.clojure/clojure "1.11.1"]
+  [[org.clojure/clojure "1.12.0"]
    [amperity/sparkplug-core "1.0.1-SNAPSHOT"]
-   [mvxcvi/whidbey "2.1.1"]
-   [nrepl "0.6.0"]]
+   [mvxcvi/whidbey "2.2.1"]
+   [nrepl "1.3.0"]]
 
   :main sparkplug.repl.main
 

@@ -8,9 +8,9 @@
   :monolith/inherit true
 
   :dependencies
-  [[org.clojure/clojure "1.11.1"]
-   [org.clojure/java.classpath "1.0.0"]
-   [org.clojure/tools.logging "1.2.4"]]
+  [[org.clojure/clojure "1.12.0"]
+   [org.clojure/java.classpath "1.1.0"]
+   [org.clojure/tools.logging "1.3.0"]]
 
   :source-paths ["src/clojure"]
   :java-source-paths ["src/java"]
@@ -22,8 +22,8 @@
    :dev
    {:dependencies
     [[org.clojure/test.check "1.1.1"]
-     [org.slf4j/slf4j-api "2.0.7"]
-     [org.slf4j/slf4j-simple "2.0.7"]]
+     [org.slf4j/slf4j-api "2.0.16"]
+     [org.slf4j/slf4j-simple "2.0.16"]]
     :jvm-opts ["-Xmx2g"
                "-XX:-OmitStackTraceInFastThrow"
                "-Dorg.slf4j.simpleLogger.defaultLogLevel=warn"
@@ -33,7 +33,7 @@
    {:source-paths ["dev"]
     :aot [sparkplug.function.test-fns]
     :dependencies
-    [[org.clojure/tools.namespace "1.3.0"]]}
+    [[org.clojure/tools.namespace "1.5.0"]]}
 
    :test
    {:aot [sparkplug.function.test-fns]}

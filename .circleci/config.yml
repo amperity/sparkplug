@@ -17,16 +17,13 @@ jobs:
       - run:
           name: Install cljstyle
           environment:
-            CLJSTYLE_VERSION: 0.15.0
+            CLJSTYLE_VERSION: 0.16.626
           command: |
-            wget https://github.com/greglook/cljstyle/releases/download/${CLJSTYLE_VERSION}/cljstyle_${CLJSTYLE_VERSION}_linux.tar.gz
-            tar -xzf cljstyle_${CLJSTYLE_VERSION}_linux.tar.gz
+            wget https://github.com/greglook/cljstyle/releases/download/${CLJSTYLE_VERSION}/cljstyle_${CLJSTYLE_VERSION}_linux_amd64.zip
+            unzip cljstyle_${CLJSTYLE_VERSION}_linux_amd64.zip
       - run:
           name: Check source formatting
-          command: "./cljstyle check --stats style-stats.tsv"
-      - store_artifacts:
-          path: style-stats.tsv
-          destination: style
+          command: "./cljstyle check --report"
 
   test-spark-3-1-java-11:
     executor: clojure-java-11
@@ -87,8 +84,19 @@ jobs:
           path: target/coverage
           destination: coverage
       - run:
-          name: Publish Coverage
-          command: 'bash <(curl -s https://codecov.io/bash) -f target/coverage/codecov.json'
+          name: Install codecov
+          command: |
+            sudo apt-get update && sudo apt-get install gpg
+            curl https://keybase.io/codecovsecurity/pgp_keys.asc | gpg --no-default-keyring --keyring trustedkeys.gpg --import
+            curl -Os https://uploader.codecov.io/latest/linux/codecov
+            curl -Os https://uploader.codecov.io/latest/linux/codecov.SHA256SUM
+            curl -Os https://uploader.codecov.io/latest/linux/codecov.SHA256SUM.sig
+            gpgv codecov.SHA256SUM.sig codecov.SHA256SUM
+            shasum -a 256 -c codecov.SHA256SUM
+            chmod +x codecov
+      - run:
+          name: Publish coverage report
+          command: './codecov -f target/coverage/codecov.json'
 
 
 # Workflow definitions
@@ -101,4 +109,4 @@ workflows:
       - test-spark-3-5-java-11
       - coverage:
           requires:
-            - test-spark-3-1-java-11
+            - test-spark-3-5-java-11

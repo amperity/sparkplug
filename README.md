@@ -1,7 +1,7 @@
 Clojure Spark API
 =================
 
-[![CircleCI](https://circleci.com/gh/amperity/sparkplug.svg?style=shield&circle-token=8222ffae4136dd0fd585c5f2c361ea9426acee8d)](https://circleci.com/gh/amperity/sparkplug)
+[![CircleCI](https://dl.circleci.com/status-badge/img/gh/amperity/sparkplug/tree/main.svg?style=shield)](https://dl.circleci.com/status-badge/redirect/gh/amperity/sparkplug/tree/main)
 [![codecov](https://codecov.io/gh/amperity/sparkplug/branch/master/graph/badge.svg)](https://codecov.io/gh/amperity/sparkplug)
 [![cljdoc](https://cljdoc.org/badge/amperity/sparkplug)](https://cljdoc.org/d/amperity/sparkplug/CURRENT)
 

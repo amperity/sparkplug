@@ -4,9 +4,9 @@
   :license {:name "Apache License 2.0"
             :url "http://www.apache.org/licenses/LICENSE-2.0"}
 
-  :deploy-branches ["master"]
-  :pedantic? :warn
   :deploy-repositories {"releases" {:url "https://repo.clojars.org"}}
+  :deploy-branches ["main"]
+  :pedantic? :warn
 
   :plugins
   [[lein-cloverage "1.2.2"]

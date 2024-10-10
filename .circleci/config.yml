@@ -25,6 +25,21 @@ jobs:
           name: Check source formatting
           command: "./cljstyle check --report"
 
+  lint:
+    executor: clojure-java-11
+    steps:
+      - checkout
+      - run:
+          name: Install clj-kondo
+          environment:
+            CLJ_KONDO_VERSION: 2024.09.27
+          command: |
+            wget https://github.com/borkdude/clj-kondo/releases/download/v${CLJ_KONDO_VERSION}/clj-kondo-${CLJ_KONDO_VERSION}-linux-amd64.zip
+            unzip clj-kondo-${CLJ_KONDO_VERSION}-linux-amd64.zip
+      - run:
+          name: Lint source code
+          command: "./clj-kondo --lint sparkplug-core/src:sparkplug-core/test"
+
   test-spark-3-1-java-11:
     executor: clojure-java-11
     steps:
@@ -75,13 +90,13 @@ jobs:
           command: lein monolith each install
       - run:
           name: Generate coverage
-          command: lein monolith each :in sparkplug-core with-profile +spark-3.1 cloverage --codecov
+          command: lein monolith each :in sparkplug-core with-profile +spark-3.5 cloverage --codecov
       - save_cache:
           key: v1-coverage-{{ checksum "project.clj" }}
           paths:
             - ~/.m2
       - store_artifacts:
-          path: target/coverage
+          path: sparkplug-core/target/coverage
           destination: coverage
       - run:
           name: Install codecov
@@ -96,15 +111,16 @@ jobs:
             chmod +x codecov
       - run:
           name: Publish coverage report
-          command: './codecov -f target/coverage/codecov.json'
+          command: './codecov -f sparkplug-core/target/coverage/codecov.json'
 
 
 # Workflow definitions
 workflows:
   version: 2
-  build:
+  test:
     jobs:
       - style
+      - lint
       - test-spark-3-1-java-11
       - test-spark-3-5-java-11
       - coverage:

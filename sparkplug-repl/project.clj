@@ -1,4 +1,4 @@
-(defproject amperity/sparkplug-repl "1.0.1-SNAPSHOT"
+(defproject amperity/sparkplug-repl "1.1.0"
   :description "Clojure REPL for Spark exploration"
   :url "https://github.com/amperity/sparkplug"
   :scm {:dir ".."}
@@ -9,7 +9,7 @@
 
   :dependencies
   [[org.clojure/clojure "1.12.0"]
-   [amperity/sparkplug-core "1.0.1-SNAPSHOT"]
+   [amperity/sparkplug-core "1.1.0"]
    [mvxcvi/whidbey "2.2.1"]
    [nrepl "1.3.0"]]
 

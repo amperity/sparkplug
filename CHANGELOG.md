@@ -7,10 +7,20 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+...
+
+
+## [1.1.0] - 2024-10-10
+
 ### Changed
 - Sparkplug is now tested with Java 11 + Spark 3.1.3, and Java 11 + Spark 3.5.1.
   Java 8 test coverage was dropped.
-- Bump Clojure to 1.11.1.
+- Bump Clojure to 1.12.0.
+- Update various dependency versions.
+- Add clj-kondo linting to test suite.
+- Fix bug when serializing functions which close over a boolean value.
+  [#27](https://github.com/amperity/sparkplug/issues/27)
+  [#28](https://github.com/amperity/sparkplug/pull/28)
 
 
 ## [1.0.0] - 2022-05-31
@@ -42,7 +52,8 @@ This project adheres to [Semantic Versioning](http://semver.org/).
   [#21](https://github.com/amperity/sparkplug/pull/21)
 
 
-[Unreleased]: https://github.com/amperity/sparkplug/compare/1.0.0...HEAD
+[Unreleased]: https://github.com/amperity/sparkplug/compare/1.1.0...HEAD
+[1.1.0]: https://github.com/amperity/sparkplug/compare/1.0.0...1.1.0
 [1.0.0]: https://github.com/amperity/sparkplug/compare/0.1.9...1.0.0
 [0.1.9]: https://github.com/amperity/sparkplug/compare/0.1.8...0.1.9
 [0.1.8]: https://github.com/amperity/sparkplug/compare/0.1.7...0.1.8

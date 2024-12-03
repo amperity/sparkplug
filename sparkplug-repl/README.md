@@ -9,9 +9,9 @@ connected to a Spark cluster.
 
 First, build the REPL uberjar and copy it into the Docker cluster:
 
-```
-$ lein uberjar
-$ cp target/uberjar/sparkplug-repl.jar ../cluster/jars
+```shell
+lein uberjar
+cp target/uberjar/sparkplug-repl.jar ../cluster/code
 ```
 
 Next, start up the REPL container in another terminal:

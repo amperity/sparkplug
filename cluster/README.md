@@ -10,58 +10,48 @@ issues that do not occur in local development contexts.
 
 Initialize the cluster, containing a master and one worker:
 
-```
-docker-compose -f docker-compose.yml up -d master worker-1
+```shell
+docker compose up -d
 ```
 
 You can submit an application with the submit script:
 
-```
-# Launch the containers
-$ docker-compose up -d
-
-# Copy uberjar to `jars` dir, your exact steps may vary
-$ lein uberjar
-$ cp $PROJECT/target/uberjar/my-app.jar docker/jars/
-
-$ ./submit.sh my-app.jar
+```shell
+cp $PROJECT/target/uberjar/my-app.jar cluster/code/
+./submit.sh my-app.jar
 ```
 
-You can also submit an application using the Spark master's REST API:
+You can also submit an application using the Spark master's REST API. First,
+create a JSON file with the request body:
 
-```
-# Place a JSON request body in a file
-$ cat request.json
+```json
 {
     "action": "CreateSubmissionRequest",
     "appArgs": ["file:///data/hamlet.txt"],
-    "appResource": "file:///mnt/jars/spark-word-count.jar",
-    "clientSparkVersion": "2.4.4",
+    "appResource": "file:///mnt/code/my-app.jar",
+    "clientSparkVersion": "3.5.1",
     "environmentVariables": {"SPARK_ENV_LOADED": "1"},
-    "mainClass": "spark_word_count.main",
+    "mainClass": "my_app.main",
     "sparkProperties":
     {
-        "spark.jars": "file:///mnt/jars/spark-word-count.jar",
-        "spark.executor.cores": 1,
-        "spark.executor.count": 1,
-        "spark.executor.memory": "1G",
+        "spark.app.name": "my-app",
+        "spark.submit.deployMode": "cluster",
+        "spark.jars": "file:///mnt/code/my-app.jar",
         "spark.driver.cores": 1,
         "spark.driver.memory": "1G",
         "spark.driver.supervise": "false",
-        "spark.app.name": "sparkplug",
-        "spark.submit.deployMode": "cluster",
+        "spark.executor.cores": 1,
+        "spark.executor.count": 1,
+        "spark.executor.memory": "1G",
         "spark.logConf": "true"
     }
 }
+```
 
-$ curl -X POST --data @request.json http://localhost:6066/v1/submissions/create
-{
-  "action" : "CreateSubmissionResponse",
-  "message" : "Driver successfully submitted as driver-20200324235704-0000",
-  "serverSparkVersion" : "2.4.4",
-  "submissionId" : "driver-20200324235704-0000",
-  "success" : true
-}
+Then submit it to the scheduling HTTP endpoint:
+
+```shell
+curl http://localhost:6066/v1/submissions/create --data @request.json
 ```
 
 ## Endpoints

@@ -17,7 +17,7 @@
 
   :profiles
   {:default
-   [:base :system :user :provided :spark-3.1 :dev]
+   [:base :system :user :provided :spark-3.5 :dev]
 
    :repl
    {:repl-options

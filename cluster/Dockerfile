@@ -1,7 +1,7 @@
 FROM eclipse-temurin:11-jdk
 
 RUN apt update
-RUN apt install -yy ca-certificates wget bash procps coreutils
+RUN apt install -yy ca-certificates wget bash procps coreutils python3
 RUN update-ca-certificates
 
 RUN mkdir -p /opt
@@ -14,15 +14,14 @@ RUN wget https://dlcdn.apache.org/hadoop/common/hadoop-${HADOOP_VERSION}/hadoop-
     mv hadoop-${HADOOP_VERSION} hadoop
 
 ARG SPARK_VERSION
-ARG SPARK_VARIANT
+ARG SPARK_VARIANT=without-hadoop
 RUN wget https://archive.apache.org/dist/spark/spark-${SPARK_VERSION}/spark-${SPARK_VERSION}-bin-${SPARK_VARIANT}.tgz && \
     tar -xzvf spark-${SPARK_VERSION}-bin-${SPARK_VARIANT}.tgz && \
     rm spark-${SPARK_VERSION}-bin-${SPARK_VARIANT}.tgz && \
     mv spark-${SPARK_VERSION}-bin-${SPARK_VARIANT} spark
 
-ENV SPARK_HOME /opt/spark
+ENV HADOOP_HOME=/opt/hadoop
+ENV SPARK_HOME=/opt/spark
+ADD spark-env.sh /opt/spark/conf/spark-env.sh
 
 RUN mkdir -p /tmp/spark-events
-
-ADD entry.sh /opt
-ENTRYPOINT ["/opt/entry.sh"]

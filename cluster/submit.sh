@@ -12,7 +12,7 @@ if [[ ! -f jars/$APP_JAR ]]; then
     exit 2
 fi
 
-docker-compose exec master \
-    bin/spark-submit \
+docker compose exec master \
+    /opt/spark/bin/spark-submit \
     --master spark://master:7077 \
     /mnt/jars/$APP_JAR

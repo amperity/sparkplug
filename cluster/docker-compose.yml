@@ -5,10 +5,10 @@ services:
       context: .
       dockerfile: Dockerfile
       args:
-        HADOOP_VERSION: 2.9.2
-        SPARK_VERSION: 2.4.4
-        SPARK_VARIANT: without-hadoop-scala-2.12
-    command: sbin/start-master.sh
+        HADOOP_VERSION: 3.3.5
+        SPARK_VERSION: 3.5.1
+        SPARK_VARIANT: without-hadoop
+    command: /opt/spark/sbin/start-master.sh
     restart: on-failure
     hostname: master
     environment:
@@ -37,10 +37,10 @@ services:
       context: .
       dockerfile: Dockerfile
       args:
-        HADOOP_VERSION: 2.9.2
-        SPARK_VERSION: 2.4.4
-        SPARK_VARIANT: without-hadoop-scala-2.12
-    command: sbin/start-slave.sh spark://master:7077
+        HADOOP_VERSION: 3.3.5
+        SPARK_VERSION: 3.5.1
+        SPARK_VARIANT: without-hadoop
+    command: /opt/spark/sbin/start-slave.sh spark://master:7077
     restart: on-failure
     hostname: worker-1
     environment:
@@ -70,7 +70,7 @@ services:
       - ./data:/data
 
   repl:
-    image: java:8-jre-alpine
+    image: eclipse-temurin:11-jdk
     command: java -jar /sparkplug-repl.jar
     restart: on-failure
     hostname: repl

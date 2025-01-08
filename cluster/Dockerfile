@@ -1,8 +1,11 @@
 FROM eclipse-temurin:11-jdk
+COPY --from=python:3.10 / /
 
 RUN apt update
-RUN apt install -yy ca-certificates wget bash procps coreutils python3
+RUN apt install -yy ca-certificates wget bash procps coreutils 
 RUN update-ca-certificates
+RUN python3 -m ensurepip --upgrade
+RUN python3 -m pip install requests==2.32.3 cbor2==5.6.5 hvac==2.3.0 boto3
 
 RUN mkdir -p /opt
 WORKDIR /opt
@@ -25,3 +28,8 @@ ENV SPARK_HOME=/opt/spark
 ADD spark-env.sh /opt/spark/conf/spark-env.sh
 
 RUN mkdir -p /tmp/spark-events
+
+RUN wget https://repo1.maven.org/maven2/org/apache/hadoop/hadoop-aws/${HADOOP_VERSION}/hadoop-aws-${HADOOP_VERSION}.jar -P "${SPARK_HOME}/jars/"
+
+ARG AWS_SDK_VERSION="1.12.99"
+RUN wget https://repo1.maven.org/maven2/com/amazonaws/aws-java-sdk-bundle/${AWS_SDK_VERSION}/aws-java-sdk-bundle-${AWS_SDK_VERSION}.jar -P "${SPARK_HOME}/jars/"

@@ -12,7 +12,13 @@ if [[ ! -f code/$APP_DRIVER ]]; then
     exit 2
 fi
 
-docker compose exec master \
+shift 
+docker compose exec \
+    --env PYSPARK_DRIVER_PYTHON=python3 \
+    --env PYSPARK_PYTHON=./venv/bin/python3 \
+    --env VAULT_TOKEN="$(cat ~/.vault-token)" \
+    master \
     /opt/spark/bin/spark-submit \
     --master spark://master:7077 \
+    "$@" \
     /mnt/code/$APP_DRIVER

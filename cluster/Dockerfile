@@ -1,11 +1,8 @@
 FROM eclipse-temurin:11-jdk
-COPY --from=python:3.10 / /
 
 RUN apt update
-RUN apt install -yy ca-certificates wget bash procps coreutils 
+RUN apt install -yy ca-certificates wget bash procps coreutils python3
 RUN update-ca-certificates
-RUN python3 -m ensurepip --upgrade
-RUN python3 -m pip install requests==2.32.3 cbor2==5.6.5 hvac==2.3.0 boto3
 
 RUN mkdir -p /opt
 WORKDIR /opt

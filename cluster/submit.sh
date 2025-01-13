@@ -15,7 +15,6 @@ fi
 shift 
 docker compose exec \
     --env PYSPARK_DRIVER_PYTHON=python3 \
-    --env PYSPARK_PYTHON=./venv/bin/python3 \
     --env VAULT_TOKEN="$(cat ~/.vault-token)" \
     master \
     /opt/spark/bin/spark-submit \
